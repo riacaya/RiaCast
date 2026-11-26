@@ -97,12 +97,38 @@ function formatDuration(ms) {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+async function detectConnType(viewer) {
+  try {
+    const pc = viewer?.call?.peerConnection;
+    if (!pc) return null;
+    const stats = await pc.getStats();
+    let pair = null;
+    stats.forEach((r) => { if (r.type === 'candidate-pair' && (r.selected || r.nominated) && r.state === 'succeeded') pair = r; });
+    if (!pair) stats.forEach((r) => { if (r.type === 'candidate-pair' && r.state === 'succeeded') pair = r; });
+    if (!pair) return null;
+    const local = stats.get(pair.localCandidateId);
+    const remote = stats.get(pair.remoteCandidateId);
+    const relay = local?.candidateType === 'relay' || remote?.candidateType === 'relay';
+    return relay ? 'TURN' : 'WebRTC';
+  } catch { return null; }
+}
+
+function refreshViewerConnTypes() {
+  if (!isAdmin()) return;
+  for (const [peerId, v] of state.viewers) {
+    detectConnType(v).then((type) => {
+      if (type) v.connType = type;
+      const timeEl = els.viewerList?.querySelector(`[data-peer="${CSS.escape(peerId)}"] .viewer-item-time`);
+      if (timeEl) timeEl.textContent = `terhubung via ${v.connType || '...'}`;
+    }).catch(() => {});
+  }
+}
+
 function updateViewerDurations() {
   if (!isAdmin()) return;
   for (const [peerId, v] of state.viewers) {
-    const text = `${peerId} • ${formatDuration(Date.now() - (v.connectedAt || Date.now()))} tersambung`;
     const timeEl = els.viewerList?.querySelector(`[data-peer="${CSS.escape(peerId)}"] .viewer-item-time`);
-    if (timeEl) timeEl.textContent = text;
+    if (timeEl) timeEl.textContent = `terhubung via ${v.connType || '...'}`;
   }
   const selfTime = els.viewerList?.querySelector('[data-peer="__self__"] .viewer-item-time');
   if (selfTime) selfTime.textContent = 'Penyiar';
@@ -141,7 +167,7 @@ function ensureViewerListItem(peerId, viewer) {
   const timeEl = item.querySelector('.viewer-item-time');
   const name = isSelf ? 'Kamu (Penyiar)' : (viewer?.name || peerId);
   if (nameEl) nameEl.textContent = name;
-  if (timeEl) timeEl.textContent = isSelf ? 'Penyiar' : `${peerId} • ${formatDuration(Date.now() - (viewer?.connectedAt || Date.now()))} tersambung`;
+  if (timeEl) timeEl.textContent = isSelf ? 'Penyiar' : `terhubung via ${viewer?.connType || '...'}`;
   if (isSelf) {
     if (video && video.srcObject !== state.localStream) video.srcObject = state.localStream || null;
   } else if (viewer) {
@@ -232,6 +258,7 @@ function upsertViewerThumb(peerId) {
   }
   thumb.classList.toggle('active', state.spotlightId === peerId);
   ensureViewerListItem(peerId, viewer);
+  refreshViewerConnTypes();
 }
 
 function removeViewerThumb(peerId) {

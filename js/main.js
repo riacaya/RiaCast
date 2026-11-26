@@ -141,6 +141,7 @@ async function boot() {
   setModeUI();
   bindUI();
   setInterval(updateViewerDurations, 1000);
+  setInterval(refreshViewerConnTypes, 5000);
   setInterval(updateOnlineTime, 1000);
   updateOnlineTime();
   syncPlayUI();
