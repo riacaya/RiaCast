@@ -1,0 +1,33 @@
+@media (max-width: 980px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .stage-card { height: auto; padding: 12px 0 4px; }
+  .side-card { height: auto; overflow: visible; padding: 12px 0 0; border-left: none; border-top: 1px solid var(--line); }
+  .side-section.log-section { flex: none; min-height: 0; display: block; }
+  .log-list { flex: none; max-height: 260px; }
+}
+@media (max-width: 640px) {
+  .app-shell { width: min(100vw - 20px, 1400px); padding-top: 10px; }
+  .app-header { padding: 8px 0; }
+  .brand-logo { width: 32px; height: 32px; flex-basis: 32px; border-radius: 10px; }
+  .brand-subtitle { font-size: 0.75rem; }
+  .icon-btn { width: 34px; height: 34px; border-radius: 10px; }
+  .stage-card { padding: 10px 0 4px; }
+  .side-card { display: none; }
+  .video-stage { aspect-ratio: 9 / 16; max-height: 72vh; }
+  .local-pip { width: min(24%, 88px); right: 8px; top: 8px; aspect-ratio: 9 / 16; }
+  .overlay:not(.drawer-right) { padding: 0; align-items: stretch; justify-items: stretch; }
+  .overlay:not(.drawer-right) .overlay-card {
+    width: 100%; max-width: 100%; height: 100%; max-height: 100%;
+    border-radius: 0; border: 0; display: flex; flex-direction: column;
+  }
+  .overlay:not(.drawer-right) .overlay-body { flex: 1; overflow: auto; max-height: none; }
+  .overlay:not(.drawer-right) .overlay-card-log { width: 100%; }
+  .mobile-only { display: inline-flex; }
+  .app-footer { font-size: 0.76rem; gap: 6px; }
+}
+@media (max-width: 640px) {
+  .viewer-thumb { flex-basis: 56px; width: 56px; aspect-ratio: 9 / 16; }
+  .viewer-panel { left: 6px; right: 6px; bottom: 6px; padding: 5px; }
+  .viewer-strip { padding: 2px 30px; gap: 5px; }
+  .video-stage:has(.viewer-panel:not(.hidden)) .fs-btn { bottom: 124px; }
+}
