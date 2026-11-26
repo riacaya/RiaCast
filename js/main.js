@@ -34,6 +34,27 @@ function bindUI() {
   document.addEventListener('fullscreenchange', syncFullscreenUI);
   document.addEventListener('webkitfullscreenchange', syncFullscreenUI);
 
+  els.btnPlay?.addEventListener('click', () => {
+    const v = els.mainVideo; if (!v) return;
+    if (v.paused) v.play().catch(() => {}); else v.pause();
+  });
+  els.btnMute?.addEventListener('click', () => {
+    const v = els.mainVideo; if (!v) return;
+    v.muted = !v.muted;
+    if (!v.muted && v.volume === 0) v.volume = 1;
+    syncVolumeUI();
+  });
+  els.volRange?.addEventListener('input', (e) => {
+    const v = els.mainVideo; if (!v) return;
+    const val = Math.max(0, Math.min(100, Number(e.target.value || 0)));
+    v.volume = val / 100;
+    v.muted = val === 0;
+    syncVolumeUI();
+  });
+  els.mainVideo?.addEventListener('play', syncPlayUI);
+  els.mainVideo?.addEventListener('pause', syncPlayUI);
+  els.mainVideo?.addEventListener('volumechange', syncVolumeUI);
+
   els.btnSettings.addEventListener('click', () => {
     openOverlay('settings-overlay');
   });
@@ -122,6 +143,10 @@ async function boot() {
   setModeUI();
   bindUI();
   setInterval(updateViewerDurations, 1000);
+  setInterval(updateOnlineTime, 1000);
+  updateOnlineTime();
+  syncPlayUI();
+  syncVolumeUI();
   els.displayName.value = state.settings.displayName || '';
   els.prefCamera.checked = state.settings.camera !== false;
   els.prefMic.checked = state.settings.mic !== false;

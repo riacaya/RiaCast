@@ -27,7 +27,10 @@
 }
 @media (max-width: 640px) {
   .viewer-thumb { flex-basis: 56px; width: 56px; aspect-ratio: 9 / 16; }
-  .viewer-panel { left: 6px; right: 6px; bottom: 6px; padding: 5px; }
+  .viewer-panel { left: 6px; right: 6px; bottom: 50px; padding: 5px; }
   .viewer-strip { padding: 2px 30px; gap: 5px; }
-  .video-stage:has(.viewer-panel:not(.hidden)) .fs-btn { bottom: 124px; }
+  .video-controls { left: 6px; right: 6px; bottom: 6px; gap: 6px; padding: 5px 6px; }
+  .ctrl-btn { width: 34px; height: 34px; flex-basis: 34px; }
+  .vol-range { width: 72px; max-width: 22vw; }
+  .time-display { font-size: 0.72rem; }
 }

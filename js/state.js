@@ -38,6 +38,14 @@ var els = {
   btnSettings: $('btn-settings'),
   btnAdmin: $('btn-admin'),
   btnFullscreen: $('btn-fullscreen'),
+  btnPlay: $('btn-play'),
+  btnMute: $('btn-mute'),
+  volRange: $('vol-range'),
+  timeDisplay: $('time-display'),
+  iconPlay: $('icon-play'),
+  iconPause: $('icon-pause'),
+  iconVol: $('icon-vol'),
+  iconMuted: $('icon-muted'),
   videoStage: $('video-stage'),
   settingsOverlay: $('settings-overlay'),
   adminOverlay: $('admin-overlay'),
@@ -67,6 +75,7 @@ var state = {
   spotlightId: null, // admin: null=self, else viewer peerId
   detectTimer: null,
   reconnectTimer: null,
+  onlineSince: Date.now(),
   destroyed: false,
 };
 

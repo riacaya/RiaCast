@@ -247,3 +247,37 @@ function removeViewerThumb(peerId) {
 }
 
 
+function formatClock(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return ${String(h).padStart(2,'0')}::;
+}
+
+function syncPlayUI() {
+  const paused = !!els.mainVideo?.paused;
+  els.iconPlay?.classList.toggle('hidden', !paused);
+  els.iconPause?.classList.toggle('hidden', paused);
+  if (els.btnPlay) {
+    els.btnPlay.setAttribute('aria-label', paused ? 'Putar' : 'Jeda');
+    els.btnPlay.setAttribute('title', paused ? 'Putar' : 'Jeda');
+  }
+}
+
+function syncVolumeUI() {
+  const v = els.mainVideo;
+  if (!v) return;
+  const muted = v.muted || v.volume === 0;
+  els.iconVol?.classList.toggle('hidden', muted);
+  els.iconMuted?.classList.toggle('hidden', !muted);
+  if (els.volRange) els.volRange.value = String(Math.round((v.muted ? 0 : v.volume) * 100));
+  if (els.btnMute) {
+    els.btnMute.setAttribute('aria-label', muted ? 'Bunyikan' : 'Bisu');
+    els.btnMute.setAttribute('title', muted ? 'Bunyikan' : 'Bisu');
+  }
+}
+
+function updateOnlineTime() {
+  if (els.timeDisplay) els.timeDisplay.textContent = formatClock(Date.now() - (state.onlineSince || Date.now()));
+}
