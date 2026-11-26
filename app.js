@@ -124,6 +124,8 @@
 
   function setModeUI() {
     const admin = isAdmin();
+    document.body.classList.toggle('mode-admin', admin);
+    document.body.classList.toggle('mode-viewer', !admin);
     if (els.roleBadge) {
       els.roleBadge.textContent = admin ? 'PENYIAR' : 'PENONTON';
       els.roleBadge.classList.toggle('admin', admin);
