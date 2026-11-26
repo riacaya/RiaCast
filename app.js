@@ -98,9 +98,11 @@
   }
 
   function setStatus(text, kind = '') {
-    els.statusText.textContent = text;
-    els.statusPill.classList.remove('ok', 'err');
-    if (kind) els.statusPill.classList.add(kind);
+    if (els.statusText) els.statusText.textContent = text;
+    if (els.statusPill) {
+      els.statusPill.classList.remove('ok', 'err');
+      if (kind) els.statusPill.classList.add(kind);
+    }
   }
 
   function setOverlay(title, sub, show = true) {
@@ -117,16 +119,18 @@
 
   function setModeUI() {
     const admin = isAdmin();
-    els.roleBadge.textContent = admin ? 'PENYIAR' : 'PENONTON';
-    els.roleBadge.classList.toggle('admin', admin);
-    els.roleBadge.classList.toggle('viewer', !admin);
+    if (els.roleBadge) {
+      els.roleBadge.textContent = admin ? 'PENYIAR' : 'PENONTON';
+      els.roleBadge.classList.toggle('admin', admin);
+      els.roleBadge.classList.toggle('viewer', !admin);
+    }
     els.infoMode.textContent = admin ? 'Penyiar (Admin)' : 'Penonton';
     els.targetId.textContent = admin ? 'Menunggu penonton' : ADMIN_PEER_ID;
     els.btnAdmin.classList.toggle('active-admin', admin);
     els.localLabel.textContent = admin ? 'Penyiar' : 'Kamu';
     els.remoteVideo.classList.toggle('hidden', admin);
     els.remoteGrid.classList.toggle('hidden', !admin);
-    els.stageTitle.textContent = admin ? 'Menyiapkan siaran' : 'Menunggu siaran';
+    if (els.stageTitle) els.stageTitle.textContent = admin ? 'Menyiapkan siaran' : 'Menunggu siaran';
     if (admin) {
       setOverlay('Mode Penyiar', 'Menunggu penonton terhubung...', true);
     }
@@ -349,7 +353,7 @@
   // ---------------- ADMIN ----------------
   function onAdminPeerOpen() {
     setOverlay('Mode Penyiar', 'Menunggu penonton terhubung...', true);
-    els.stageTitle.textContent = 'Siaran aktif';
+    if (els.stageTitle) els.stageTitle.textContent = 'Siaran aktif';
     els.infoAdmin.textContent = 'Kamu adalah admin';
     log('Admin siap menerima penonton.');
   }
@@ -640,7 +644,7 @@
       els.remoteVideo.play().catch(() => {});
       setOverlay('', '', false);
       setStatus('Terhubung ke siaran', 'ok');
-      els.stageTitle.textContent = 'Siaran langsung';
+      if (els.stageTitle) els.stageTitle.textContent = 'Siaran langsung';
       log('Stream admin diterima.');
       updateCounts();
     });
@@ -649,7 +653,7 @@
       state.adminCall = null;
       els.remoteVideo.srcObject = null;
       setStatus('Siaran terputus', '');
-      els.stageTitle.textContent = 'Menunggu siaran';
+      if (els.stageTitle) els.stageTitle.textContent = 'Menunggu siaran';
       setOverlay('Siaran terputus', 'Menunggu admin kembali online...', true);
       log('Call admin tertutup.');
       updateCounts();
