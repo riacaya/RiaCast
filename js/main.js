@@ -128,7 +128,7 @@ async function boot() {
 
   if (!window.Peer) {
     setStatus('PeerJS tidak tersedia', 'err');
-    setOverlay('PeerJS gagal dimuat', 'File peerjs.min.js tidak ditemukan.', true);
+    setOverlay('PeerJS gagal dimuat', 'File vendor/peerjs.min.js tidak ditemukan.', true);
     return;
   }
 

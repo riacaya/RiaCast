@@ -42,9 +42,9 @@ Lalu buka `http://localhost:8080`.
 ## Struktur
 
 - `index.html` - UI utama
-- `style.css` - styling
-- `app.js` - logika PeerJS/WebRTC/admin/viewer
-- `peerjs.min.js` - library PeerJS
+- `css/` - styling (`base`, `layout`, `components`, `responsive`)
+- `js/` - logika app (`state`, `ui`, `peer`, `main`)
+- `vendor/peerjs.min.js` - library PeerJS
 - `assets/` - logo dan aset statis
 - `download/` - tempat artefak APK/EXE
 
