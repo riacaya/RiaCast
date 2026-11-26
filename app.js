@@ -38,6 +38,8 @@
     logList: $('log-list'),
     btnSettings: $('btn-settings'),
     btnAdmin: $('btn-admin'),
+    btnFullscreen: $('btn-fullscreen'),
+    videoStage: $('video-stage'),
     settingsOverlay: $('settings-overlay'),
     adminOverlay: $('admin-overlay'),
     displayName: $('display-name'),
@@ -827,6 +829,49 @@
     side.style.height = cardH + 'px';
   }
 
+  function getFullscreenElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+
+  async function toggleFullscreen() {
+    const stage = els.videoStage || $('video-stage');
+    if (!stage) return;
+    try {
+      if (getFullscreenElement()) {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        return;
+      }
+      if (stage.requestFullscreen) await stage.requestFullscreen();
+      else if (stage.webkitRequestFullscreen) stage.webkitRequestFullscreen();
+      else if (els.mainVideo?.webkitEnterFullscreen) { els.mainVideo.webkitEnterFullscreen(); return; }
+      else return;
+      if (screen.orientation && screen.orientation.lock) {
+        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1;
+        if (isMobile) {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
+      }
+    } catch (e) {
+      log('Fullscreen gagal: ' + (e?.message || e));
+    }
+  }
+
+  function syncFullscreenUI() {
+    const active = !!getFullscreenElement();
+    const expand = $('fs-icon-expand');
+    const compress = $('fs-icon-compress');
+    if (expand) expand.classList.toggle('hidden', active);
+    if (compress) compress.classList.toggle('hidden', !active);
+    if (els.btnFullscreen) {
+      els.btnFullscreen.setAttribute('aria-label', active ? 'Keluar layar penuh' : 'Layar penuh');
+      els.btnFullscreen.setAttribute('title', active ? 'Keluar layar penuh' : 'Layar penuh');
+    }
+    if (!active && screen.orientation && screen.orientation.unlock) {
+      try { screen.orientation.unlock(); } catch {}
+    }
+  }
+
   function bindUI() {
     qsa('[data-close]').forEach((btn) => {
       btn.addEventListener('click', () => closeOverlay(btn.getAttribute('data-close')));
@@ -853,6 +898,9 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { closeOverlay('settings-overlay'); closeOverlay('admin-overlay'); }
     });
+    els.btnFullscreen?.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', syncFullscreenUI);
+    document.addEventListener('webkitfullscreenchange', syncFullscreenUI);
 
     els.btnSettings.addEventListener('click', () => {
       els.displayName.value = state.settings.displayName || '';
