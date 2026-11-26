@@ -820,8 +820,11 @@
       side.style.marginTop = '';
       return;
     }
+    // Break circular sizing: let stage-card settle to natural height first
+    side.style.height = '0px';
+    const cardH = stageCard.getBoundingClientRect().height;
     side.style.marginTop = '0px';
-    side.style.height = stageCard.getBoundingClientRect().height + 'px';
+    side.style.height = cardH + 'px';
   }
 
   function bindUI() {
