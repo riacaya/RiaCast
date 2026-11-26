@@ -71,7 +71,7 @@ button, input { font: inherit; }
 .app-shell { width: min(1400px, calc(100vw - 32px)); margin: 0 auto; padding: 20px 0 28px; position: relative; }
 .app-header {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 10px 14px;
+  padding: 0;
   background: color-mix(in srgb, var(--accent) 10%, var(--panel-solid));
   border-bottom: 1px solid var(--line);
 }
