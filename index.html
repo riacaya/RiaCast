@@ -64,23 +64,18 @@
 
       </section>
 
-      <aside class="side-card">
-        <div class="side-section">
-          <h3 class="side-title">Status</h3>
-          <div class="info-row"><span class="info-k">Mode</span><span class="info-v" id="info-mode">Penonton</span></div>
-          <div class="info-row"><span class="info-k">ID Saya</span><span class="info-v" id="my-id">-</span></div>
-          <div class="info-row"><span class="info-k">Target</span><span class="info-v" id="target-id">riacast-99</span></div>
-          <div class="info-row"><span class="info-k">Koneksi</span><span class="info-v" id="conn-count">0</span></div>
-          <div class="info-row"><span class="info-k">PeerJS</span><span class="info-v" id="info-peer">-</span></div>
-          <div class="info-row"><span class="info-k">Admin</span><span class="info-v" id="info-admin">Memeriksa...</span></div>
-          <div class="info-row"><span class="info-k">Media</span><span class="info-v" id="info-media">Belum siap</span></div>
-        </div>
-        <div class="side-section log-section">
-          <h3 class="side-title">Log</h3>
-          <div id="log-list" class="log-list" aria-live="polite"></div>
+      <aside class="side-card" id="side-card">
+        <div class="side-section viewer-list-section" id="viewer-list-section">
+          <h3 class="side-title">Penonton</h3>
+          <div id="viewer-list" class="viewer-list" aria-live="polite"></div>
         </div>
       </aside>
     </main>
+    <footer class="app-footer">
+      <span>Telp: <a href="tel:+628233801310">+628233801310</a></span>
+      <span class="footer-sep">|</span>
+      <span>Email: <a href="mailto:riacaya99@gmail.com">riacaya99@gmail.com</a></span>
+    </footer>
   </div>
 
   <div id="settings-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="settings-title">
@@ -103,6 +98,10 @@
           <input id="pref-mic" type="checkbox" checked>
         </label>
         <p class="field-note">Pengaturan disimpan di perangkat ini.</p>
+        <div class="settings-shortcuts">
+          <button id="open-status-panel" type="button" class="shortcut-btn">Buka Status</button>
+          <button id="open-log-panel" type="button" class="shortcut-btn">Buka Log</button>
+        </div>
         <div class="overlay-actions">
           <button id="save-settings" type="button" class="btn-primary">Simpan</button>
         </div>
@@ -129,6 +128,36 @@
         <div class="overlay-actions">
           <button id="admin-login" type="button" class="btn-primary">Masuk</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="status-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="status-title">
+    <div class="overlay-card">
+      <div class="overlay-head">
+        <h2 id="status-title">Status</h2>
+        <button type="button" class="overlay-close" data-close="status-overlay" aria-label="Tutup">&times;</button>
+      </div>
+      <div class="overlay-body">
+        <div class="info-row"><span class="info-k">Mode</span><span class="info-v" data-info="mode">Penonton</span></div>
+        <div class="info-row"><span class="info-k">ID Saya</span><span class="info-v" data-info="myId">-</span></div>
+        <div class="info-row"><span class="info-k">Target</span><span class="info-v" data-info="targetId">riacast-99</span></div>
+        <div class="info-row"><span class="info-k">Koneksi</span><span class="info-v" data-info="connCount">0</span></div>
+        <div class="info-row"><span class="info-k">PeerJS</span><span class="info-v" data-info="peer">-</span></div>
+        <div class="info-row"><span class="info-k">Admin</span><span class="info-v" data-info="admin">Memeriksa...</span></div>
+        <div class="info-row"><span class="info-k">Media</span><span class="info-v" data-info="media">Belum siap</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="log-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="log-title">
+    <div class="overlay-card overlay-card-log">
+      <div class="overlay-head">
+        <h2 id="log-title">Log</h2>
+        <button type="button" class="overlay-close" data-close="log-overlay" aria-label="Tutup">&times;</button>
+      </div>
+      <div class="overlay-body overlay-body-log">
+        <div id="log-list" class="log-list" aria-live="polite"></div>
       </div>
     </div>
   </div>

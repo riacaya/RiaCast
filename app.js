@@ -20,6 +20,7 @@
     mainVideo: $('main-video'),
     viewerPanel: $('viewer-panel'),
     viewerStrip: $('viewer-strip'),
+    viewerList: $('viewer-list'),
     viewerScrollLeft: $('viewer-scroll-left'),
     viewerScrollRight: $('viewer-scroll-right'),
     videoOverlay: $('video-overlay'),
@@ -118,10 +119,14 @@
     els.videoOverlay.classList.toggle('hidden', !show);
   }
 
+  function setInfo(key, value) {
+    qsa(`[data-info="${key}"]`).forEach((el) => { el.textContent = value; });
+  }
+
   function updateCounts() {
     const count = isAdmin() ? state.viewers.size : (state.adminCall ? 1 : 0);
-    els.connCount.textContent = String(count);
-    els.infoAdmin.textContent = isAdmin() ? 'Kamu adalah admin' : (state.adminDetected ? 'Aktif' : 'Tidak terdeteksi');
+    setInfo('connCount', String(count));
+    setInfo('admin', isAdmin() ? 'Kamu adalah admin' : (state.adminDetected ? 'Aktif' : 'Tidak terdeteksi'));
   }
 
   function setModeUI() {
@@ -133,8 +138,8 @@
       els.roleBadge.classList.toggle('admin', admin);
       els.roleBadge.classList.toggle('viewer', !admin);
     }
-    els.infoMode.textContent = admin ? 'Penyiar (Admin)' : 'Penonton';
-    els.targetId.textContent = admin ? 'Menunggu penonton' : ADMIN_PEER_ID;
+    setInfo('mode', admin ? 'Penyiar (Admin)' : 'Penonton');
+    setInfo('targetId', admin ? 'Menunggu penonton' : ADMIN_PEER_ID);
     els.btnAdmin.classList.toggle('active-admin', admin);
     els.localLabel.textContent = 'Kamu';
     els.localPip.classList.toggle('hidden', admin);
@@ -180,8 +185,86 @@
     renderViewerPanel();
   }
 
-  function renderViewerPanel() {
+  function formatDuration(ms) {
+    const total = Math.max(0, Math.floor(ms / 1000));
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  function updateViewerDurations() {
     if (!isAdmin()) return;
+    for (const [peerId, v] of state.viewers) {
+      const text = `${peerId} • ${formatDuration(Date.now() - (v.connectedAt || Date.now()))} tersambung`;
+      const timeEl = els.viewerList?.querySelector(`[data-peer="${CSS.escape(peerId)}"] .viewer-item-time`);
+      if (timeEl) timeEl.textContent = text;
+    }
+    const selfTime = els.viewerList?.querySelector('[data-peer="__self__"] .viewer-item-time');
+    if (selfTime) selfTime.textContent = 'Penyiar';
+  }
+
+  function ensureViewerListItem(peerId, viewer) {
+    if (!els.viewerList) return null;
+    let item = els.viewerList.querySelector(`[data-peer="${CSS.escape(peerId)}"]`);
+    const isSelf = peerId === '__self__';
+    if (!item) {
+      item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'viewer-item';
+      item.dataset.peer = peerId;
+      const thumbWrap = document.createElement('div');
+      thumbWrap.className = 'viewer-item-thumb';
+      const video = document.createElement('video');
+      video.autoplay = true; video.playsInline = true; video.muted = isSelf;
+      thumbWrap.appendChild(video);
+      const meta = document.createElement('div');
+      meta.className = 'viewer-item-meta';
+      const name = document.createElement('div');
+      name.className = 'viewer-item-name';
+      const time = document.createElement('div');
+      time.className = 'viewer-item-time';
+      meta.appendChild(name);
+      meta.appendChild(time);
+      item.appendChild(thumbWrap);
+      item.appendChild(meta);
+      item.addEventListener('click', () => setSpotlight(isSelf ? null : (state.spotlightId === peerId ? null : peerId)));
+      if (isSelf) els.viewerList.prepend(item);
+      else els.viewerList.appendChild(item);
+    }
+    const video = item.querySelector('video');
+    const nameEl = item.querySelector('.viewer-item-name');
+    const timeEl = item.querySelector('.viewer-item-time');
+    const name = isSelf ? 'Kamu (Penyiar)' : (viewer?.name || peerId);
+    if (nameEl) nameEl.textContent = name;
+    if (timeEl) timeEl.textContent = isSelf ? 'Penyiar' : `${peerId} • ${formatDuration(Date.now() - (viewer?.connectedAt || Date.now()))} tersambung`;
+    if (isSelf) {
+      if (video && video.srcObject !== state.localStream) video.srcObject = state.localStream || null;
+    } else if (viewer) {
+      viewer.listItem = item;
+      viewer.listVideo = video;
+      if (video && viewer.stream && video.srcObject !== viewer.stream) video.srcObject = viewer.stream;
+    }
+    item.classList.toggle('active', isSelf ? !state.spotlightId : state.spotlightId === peerId);
+    return item;
+  }
+
+  function syncViewerSidebar() {
+    if (!els.viewerList) return;
+    if (!isAdmin()) { els.viewerList.innerHTML = ''; return; }
+    ensureViewerListItem('__self__', null);
+    [...els.viewerList.querySelectorAll('.viewer-item[data-peer]')].forEach((el) => {
+      const id = el.dataset.peer;
+      if (id !== '__self__' && !state.viewers.has(id)) el.remove();
+    });
+    for (const [peerId, viewer] of state.viewers) ensureViewerListItem(peerId, viewer);
+    let empty = els.viewerList.querySelector('.viewer-empty');
+    if (state.viewers.size === 0) {
+      if (!empty) { empty = document.createElement('div'); empty.className = 'viewer-empty'; empty.textContent = 'Belum ada penonton.'; els.viewerList.appendChild(empty); }
+    } else if (empty) empty.remove();
+  }
+
+  function renderViewerPanel() {
+    if (!isAdmin()) { syncViewerSidebar(); return; }
     els.viewerPanel.classList.remove('hidden');
 
     // Ensure self thumb
@@ -210,6 +293,7 @@
       const id = el.dataset.peer;
       if (id !== '__self__' && !state.viewers.has(id)) el.remove();
     });
+    syncViewerSidebar();
   }
 
   function upsertViewerThumb(peerId) {
@@ -242,13 +326,17 @@
       viewer.video.srcObject = viewer.stream;
     }
     thumb.classList.toggle('active', state.spotlightId === peerId);
+    ensureViewerListItem(peerId, viewer);
   }
 
   function removeViewerThumb(peerId) {
     const v = state.viewers.get(peerId);
     if (v?.thumb) { v.thumb.remove(); v.thumb = null; v.video = null; }
+    if (v?.listItem) { v.listItem.remove(); v.listItem = null; v.listVideo = null; }
     const el = els.viewerStrip.querySelector(`[data-peer="${CSS.escape(peerId)}"]`);
     if (el) el.remove();
+    const listEl = els.viewerList?.querySelector(`[data-peer="${CSS.escape(peerId)}"]`);
+    if (listEl) listEl.remove();
     if (state.spotlightId === peerId) setSpotlight(null);
     renderViewerPanel();
   }
@@ -299,7 +387,7 @@
     const wantVideo = state.settings.camera !== false;
     const wantAudio = state.settings.mic !== false;
     if (!wantVideo && !wantAudio) {
-      els.infoMedia.textContent = 'Mati (pengaturan)';
+      setInfo('media', 'Mati (pengaturan)');
       const fallback = createFallbackStream();
       state.localStream = fallback;
       els.localVideo.srcObject = fallback;
@@ -317,7 +405,7 @@
         state.localStream = stream;
         els.localVideo.srcObject = stream;
         els.localPip.classList.toggle('hidden', isAdmin());
-        els.infoMedia.textContent = a.label;
+        setInfo('media', a.label);
         log('Media lokal siap: ' + a.label);
         if (isAdmin() && !state.spotlightId) setMainToSelf();
         if (isAdmin()) renderViewerPanel();
@@ -328,7 +416,7 @@
       }
     }
 
-    els.infoMedia.textContent = 'Media fallback';
+    setInfo('media', 'Media fallback');
     log('Semua percobaan media gagal, pakai fallback.');
     const fallback = createFallbackStream();
     state.localStream = fallback;
@@ -395,8 +483,8 @@
 
     peer.on('open', (openId) => {
       state.peerOpen = true;
-      els.myId.textContent = openId;
-      els.infoPeer.textContent = 'Terhubung';
+      setInfo('myId', openId);
+      setInfo('peer', 'Terhubung');
       setStatus('PeerJS terhubung', 'ok');
       log(`PeerJS siap: ${openId}`);
       if (isAdmin()) onAdminPeerOpen();
@@ -406,7 +494,7 @@
     peer.on('disconnected', () => {
       if (state.destroyed) return;
       state.peerOpen = false;
-      els.infoPeer.textContent = 'Terputus';
+      setInfo('peer', 'Terputus');
       setStatus('PeerJS terputus, mencoba menyambung...', 'err');
       log('PeerJS terputus, mencoba reconnect...');
       try { peer.reconnect(); } catch { schedulePeerRestart(); }
@@ -415,7 +503,7 @@
     peer.on('close', () => {
       if (state.destroyed) return;
       state.peerOpen = false;
-      els.infoPeer.textContent = 'Tertutup';
+      setInfo('peer', 'Tertutup');
       setStatus('Koneksi PeerJS tertutup', 'err');
       log('PeerJS tertutup.');
       schedulePeerRestart();
@@ -427,7 +515,7 @@
       console.warn('Peer error', type, err);
       if (type === 'unavailable-id') {
         if (isAdmin()) {
-          els.infoPeer.textContent = 'ID bentrok';
+          setInfo('peer', 'ID bentrok');
           setStatus('ID admin sedang dipakai', 'err');
           setOverlay('Admin sudah aktif', 'ID riacast-99 sedang digunakan di sesi lain. Tutup sesi admin lain atau coba lagi.', true);
           log('ID admin riacast-99 bentrok.');
@@ -444,7 +532,7 @@
         return;
       }
       if (type === 'network' || type === 'server-error' || type === 'socket-error' || type === 'socket-closed') {
-        els.infoPeer.textContent = 'Gangguan jaringan';
+        setInfo('peer', 'Gangguan jaringan');
         setStatus('Gangguan jaringan PeerJS', 'err');
         schedulePeerRestart(1500);
         return;
@@ -478,8 +566,8 @@
   function bootPeer() {
     if (state.destroyed) return;
     const id = isAdmin() ? ADMIN_PEER_ID : state.viewerId;
-    els.myId.textContent = id;
-    els.infoPeer.textContent = 'Menghubungkan...';
+    setInfo('myId', id);
+    setInfo('peer', 'Menghubungkan...');
     setStatus('Menghubungkan ke PeerJS...', '');
     createPeer(id);
   }
@@ -489,7 +577,7 @@
     if (state.localStream) setOverlay('', '', false);
     else setOverlay('Mode Penyiar', 'Menyiapkan kamera...', true);
     if (els.stageTitle) els.stageTitle.textContent = 'Siaran aktif';
-    els.infoAdmin.textContent = 'Kamu adalah admin';
+    setInfo('admin', 'Kamu adalah admin');
     log('Admin siap menerima penonton.');
   }
 
@@ -508,7 +596,7 @@
   function getOrCreateViewer(peerId) {
     let v = state.viewers.get(peerId);
     if (!v) {
-      v = { peerId, conn: null, call: null, tile: null, video: null, name: peerId, lastCallAt: 0, callConnected: false };
+      v = { peerId, conn: null, call: null, tile: null, thumb: null, video: null, listItem: null, listVideo: null, name: peerId, lastCallAt: 0, callConnected: false, connectedAt: Date.now() };
       state.viewers.set(peerId, v);
     }
     return v;
@@ -650,7 +738,7 @@
   // ---------------- VIEWER ----------------
   function onViewerPeerOpen() {
     setOverlay('Mencari admin', 'Mendeteksi penyiar riacast-99...', true);
-    els.infoAdmin.textContent = 'Memeriksa...';
+    setInfo('admin', 'Memeriksa...');
     startAdminDetection();
   }
 
@@ -689,7 +777,7 @@
     conn.on('open', () => {
       if (state.adminConn !== conn) return;
       state.adminDetected = true;
-      els.infoAdmin.textContent = 'Aktif';
+      setInfo('admin', 'Aktif');
       setStatus('Admin terdeteksi', 'ok');
       setOverlay('Admin terdeteksi', 'Meminta sambungan otomatis...', true);
       log('Terhubung ke admin, mengirim hello...');
@@ -704,7 +792,7 @@
       if (state.adminConn !== conn) return;
       state.adminConn = null;
       state.adminDetected = false;
-      els.infoAdmin.textContent = 'Tidak terdeteksi';
+      setInfo('admin', 'Tidak terdeteksi');
       updateCounts();
       if (!state.adminCall) {
         setStatus('Admin terputus, mencari...', '');
@@ -726,7 +814,7 @@
     if (!data || typeof data !== 'object') return;
     if (data.type === 'admin-welcome' || data.type === 'admin-ready') {
       state.adminDetected = true;
-      els.infoAdmin.textContent = 'Aktif';
+      setInfo('admin', 'Aktif');
       updateCounts();
       // Ensure request sent
       if (!state.adminCall) {
@@ -892,11 +980,17 @@
     els.viewerScrollRight?.addEventListener('click', () => {
       els.viewerStrip.scrollBy({ left: 240, behavior: 'smooth' });
     });
-    [els.settingsOverlay, els.adminOverlay].forEach((ov) => {
-      ov.addEventListener('click', (e) => { if (e.target === ov) ov.classList.add('hidden'); });
+    ['settings-overlay', 'admin-overlay', 'status-overlay', 'log-overlay'].forEach((id) => {
+      const ov = $(id);
+      ov?.addEventListener('click', (e) => { if (e.target === ov) ov.classList.add('hidden'); });
     });
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { closeOverlay('settings-overlay'); closeOverlay('admin-overlay'); }
+      if (e.key === 'Escape') {
+        closeOverlay('settings-overlay');
+        closeOverlay('admin-overlay');
+        closeOverlay('status-overlay');
+        closeOverlay('log-overlay');
+      }
     });
     els.btnFullscreen?.addEventListener('click', toggleFullscreen);
     document.addEventListener('fullscreenchange', syncFullscreenUI);
@@ -908,6 +1002,8 @@
       els.prefMic.checked = state.settings.mic !== false;
       openOverlay('settings-overlay');
     });
+    $('open-status-panel')?.addEventListener('click', () => openOverlay('status-overlay'));
+    $('open-log-panel')?.addEventListener('click', () => openOverlay('log-overlay'));
 
     els.saveSettings.addEventListener('click', async () => {
       state.settings.displayName = els.displayName.value.trim().slice(0, 32);
@@ -975,6 +1071,7 @@
   async function boot() {
     setModeUI();
     bindUI();
+    setInterval(updateViewerDurations, 1000);
     els.displayName.value = state.settings.displayName || '';
     els.prefCamera.checked = state.settings.camera !== false;
     els.prefMic.checked = state.settings.mic !== false;
@@ -987,11 +1084,11 @@
 
     if (isAdmin()) {
       state.viewerId = '';
-      els.myId.textContent = ADMIN_PEER_ID;
+      setInfo('myId', ADMIN_PEER_ID);
       log('Memulai mode penyiar (ADMIN).');
     } else {
       state.viewerId = getViewerId();
-      els.myId.textContent = state.viewerId;
+      setInfo('myId', state.viewerId);
       log(`Memulai mode penonton: ${state.viewerId}`);
     }
 
