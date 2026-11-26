@@ -568,20 +568,22 @@ function setDeviceTab(tab) {
   });
 }
 
+var _syncSidebarH = 0;
 function syncSidebarHeight() {
   const stageCard = document.querySelector('.stage-card');
   const side = document.querySelector('.side-card');
   if (!stageCard || !side) return;
   if (window.innerWidth <= 980) {
-    side.style.height = '';
-    side.style.marginTop = '';
+    if (side.style.height) side.style.height = '';
+    if (side.style.marginTop) side.style.marginTop = '';
     return;
   }
-  // Break circular sizing: let stage-card settle to natural height first
-  side.style.height = '0px';
-  const cardH = stageCard.getBoundingClientRect().height;
+  const cardH = Math.round(stageCard.getBoundingClientRect().height);
+  if (!cardH) return;
+  if (_syncSidebarH === cardH && side.style.height === cardH + 'px') return;
+  _syncSidebarH = cardH;
   side.style.marginTop = '0px';
-  side.style.height = cardH + 'px';
+  if (side.style.height !== cardH + 'px') side.style.height = cardH + 'px';
 }
 
 function getFullscreenElement() {

@@ -4,13 +4,11 @@ function bindUI() {
   });
   window.addEventListener('resize', syncSidebarHeight);
   if (window.ResizeObserver) {
-    const ro = new ResizeObserver(syncSidebarHeight);
+    const ro = new ResizeObserver(() => { requestAnimationFrame(syncSidebarHeight); });
     const stageCard = document.querySelector('.stage-card');
     const stage = document.querySelector('.video-stage');
-    const side = document.querySelector('.side-card');
     if (stageCard) ro.observe(stageCard);
     if (stage) ro.observe(stage);
-    if (side) ro.observe(side);
   }
   els.viewerScrollLeft?.addEventListener('click', () => {
     els.viewerStrip.scrollBy({ left: -240, behavior: 'smooth' });
