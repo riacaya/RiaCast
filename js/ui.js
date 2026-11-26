@@ -321,3 +321,36 @@ function syncShareUI() {
 function updateOnlineTime() {
   if (els.timeDisplay) els.timeDisplay.textContent = formatClock(Date.now() - (state.onlineSince || Date.now()));
 }
+function escapeChatText(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function appendChatMessage(msg) {
+  if (!els.chatMessages) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-msg' + (msg.self ? ' mine' : '');
+  const meta = document.createElement('div');
+  meta.className = 'chat-msg-meta';
+  const name = document.createElement('span');
+  name.className = 'chat-msg-name';
+  name.textContent = msg.self ? 'Kamu' : (msg.name || msg.peerId || 'User');
+  const time = document.createElement('span');
+  time.className = 'chat-msg-time';
+  const d = new Date(msg.ts || Date.now());
+  time.textContent = d.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit' });
+  meta.appendChild(name);
+  meta.appendChild(time);
+  const body = document.createElement('div');
+  body.className = 'chat-msg-body';
+  body.textContent = String(msg.text || '');
+  wrap.appendChild(meta);
+  wrap.appendChild(body);
+  els.chatMessages.appendChild(wrap);
+  els.chatMessages.scrollTop = els.chatMessages.scrollHeight;
+}
+
+function addChatMessage(msg) {
+  state.chatMessages.push(msg);
+  if (state.chatMessages.length > 200) state.chatMessages.shift();
+  appendChatMessage(msg);
+}

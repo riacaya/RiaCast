@@ -385,6 +385,19 @@ async function handleAdminData(peerId, data) {
     log(`Permintaan sambungan dari ${viewer.name} (${peerId}) - auto approve`);
     await autoApproveViewer(peerId);
   }
+  if (data.type === 'chat') {
+    const text = String(data.text || '').trim().slice(0, 500);
+    if (!text) return;
+    const msg = {
+      id: String(data.id || makeChatId()),
+      name: String(data.name || viewer.name || peerId).slice(0, 32),
+      text,
+      ts: Number(data.ts) || Date.now(),
+      peerId,
+    };
+    addChatMessage({ ...msg, self: false });
+    broadcastChat(msg, peerId);
+  }
 }
 
 async function autoApproveViewer(peerId) {
@@ -590,6 +603,20 @@ async function handleViewerData(data) {
   if (data.type === 'admin-error') {
     setOverlay('Info admin', String(data.message || 'Terjadi kendala di sisi admin.'), true);
   }
+  if (data.type === 'chat') {
+    const id = String(data.id || '');
+    if (id && state.chatMessages.some((m) => m.id === id)) return;
+    const text = String(data.text || '').trim().slice(0, 500);
+    if (!text) return;
+    addChatMessage({
+      id: id || makeChatId(),
+      name: String(data.name || data.peerId || 'User').slice(0, 32),
+      text,
+      ts: Number(data.ts) || Date.now(),
+      peerId: String(data.peerId || ''),
+      self: false,
+    });
+  }
 }
 
 async function handleViewerIncomingCall(call) {
@@ -656,6 +683,39 @@ function bindViewerCall(call) {
 
 function getDisplayName() {
   return (state.settings.displayName || '').trim() || (isAdmin() ? 'Admin' : state.viewerId);
+}
+
+// ---------------- CHAT ----------------
+function makeChatId() { return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8); }
+
+function sendChatFromUI() {
+  const text = (els.chatInput?.value || '').trim();
+  if (!text) return;
+  const msg = {
+    id: makeChatId(),
+    name: getDisplayName(),
+    text: text.slice(0, 500),
+    ts: Date.now(),
+    peerId: isAdmin() ? ADMIN_PEER_ID : (state.viewerId || state.peer?.id || ''),
+  };
+  if (els.chatInput) els.chatInput.value = '';
+  addChatMessage({ ...msg, self: true });
+  if (isAdmin()) {
+    broadcastChat(msg);
+  } else {
+    if (!state.adminConn || !state.adminConn.open) {
+      log('Chat gagal dikirim: belum terhubung ke admin.');
+      return;
+    }
+    send(state.adminConn, { type: 'chat', ...msg });
+  }
+}
+
+function broadcastChat(msg, excludePeerId) {
+  for (const [peerId, viewer] of state.viewers) {
+    if (excludePeerId && peerId === excludePeerId) continue;
+    if (viewer.conn) send(viewer.conn, { type: 'chat', ...msg });
+  }
 }
 
 // ---------------- UI ----------------

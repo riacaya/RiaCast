@@ -89,6 +89,16 @@
           <h3 class="side-title">Penonton</h3>
           <div id="viewer-list" class="viewer-list" aria-live="polite"></div>
         </div>
+        <div class="side-section chat-section" id="chat-section">
+          <h3 class="side-title">Chat</h3>
+          <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
+          <form id="chat-form" class="chat-form">
+            <input id="chat-input" class="chat-input" type="text" maxlength="500" placeholder="Tulis pesan..." autocomplete="off">
+            <button id="chat-send" class="chat-send" type="submit" aria-label="Kirim">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+            </button>
+          </form>
+        </div>
       </aside>
     </main>
     <footer class="app-footer">

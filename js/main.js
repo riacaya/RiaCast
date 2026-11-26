@@ -76,6 +76,11 @@ function bindUI() {
     try { await ensureLocalStream(); } catch {}
   });
 
+  els.chatForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendChatFromUI();
+  });
+
   els.btnSettings.addEventListener('click', () => {
     openOverlay('settings-overlay');
   });

@@ -51,6 +51,9 @@ var els = {
   iconVol: $('icon-vol'),
   iconMuted: $('icon-muted'),
   videoStage: $('video-stage'),
+  chatMessages: $('chat-messages'),
+  chatForm: $('chat-form'),
+  chatInput: $('chat-input'),
   settingsOverlay: $('settings-overlay'),
   adminOverlay: $('admin-overlay'),
   displayName: $('display-name'),
@@ -82,6 +85,7 @@ var state = {
   onlineSince: Date.now(),
   screenSharing: false,
   screenPaused: false,
+  chatMessages: [],
   destroyed: false,
 };
 
