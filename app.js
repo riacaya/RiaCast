@@ -299,7 +299,7 @@
       const fallback = createFallbackStream();
       state.localStream = fallback;
       els.localVideo.srcObject = fallback;
-      els.localPip.classList.remove('hidden');
+      els.localPip.classList.toggle('hidden', isAdmin());
       return fallback;
     }
     const attempts = [];
@@ -312,7 +312,7 @@
         const stream = await navigator.mediaDevices.getUserMedia({ video: a.video, audio: a.audio });
         state.localStream = stream;
         els.localVideo.srcObject = stream;
-        els.localPip.classList.remove('hidden');
+        els.localPip.classList.toggle('hidden', isAdmin());
         els.infoMedia.textContent = a.label;
         log('Media lokal siap: ' + a.label);
         if (isAdmin() && !state.spotlightId) setMainToSelf();
@@ -329,7 +329,7 @@
     const fallback = createFallbackStream();
     state.localStream = fallback;
     els.localVideo.srcObject = fallback;
-    els.localPip.classList.remove('hidden');
+    els.localPip.classList.toggle('hidden', isAdmin());
     if (isAdmin() && !state.spotlightId) setMainToSelf();
     if (isAdmin()) renderViewerPanel();
     setOverlay('Izin media terbatas', 'Kamera/mic tidak dapat diakses. Periksa izin browser lalu refresh.', true);
