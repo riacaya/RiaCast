@@ -62,25 +62,25 @@ button, input { font: inherit; }
 .main-video, .local-pip video { width: 100%; height: 100%; object-fit: cover; background: #090b10; }
 .main-video { display: block; }
 .viewer-panel {
-  position: absolute; left: 12px; right: 12px; bottom: 12px; padding: 8px; border-radius: 16px;
+  position: absolute; left: 8px; right: 8px; bottom: 8px; padding: 6px; border-radius: 14px;
   background: rgba(12, 14, 20, 0.72); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(10px);
 }
 .viewer-panel.hidden { display: none; }
 .viewer-strip-wrap { position: relative; }
 .viewer-scroll {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
-  width: 32px; height: 32px; border: 1px solid rgba(255,255,255,0.14); border-radius: 50%;
-  background: rgba(18, 22, 30, 0.88); color: var(--text); font-size: 1.3rem; line-height: 1; cursor: pointer;
+  width: 28px; height: 28px; border: 1px solid rgba(255,255,255,0.14); border-radius: 50%;
+  background: rgba(18, 22, 30, 0.88); color: var(--text); font-size: 1.2rem; line-height: 1; cursor: pointer;
   display: grid; place-items: center; padding: 0;
 }
-#viewer-scroll-left { left: 4px; }
-#viewer-scroll-right { right: 4px; }
+#viewer-scroll-left { left: 2px; }
+#viewer-scroll-right { right: 2px; }
 .viewer-scroll:hover { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.24); }
-.viewer-strip { display: flex; gap: 8px; overflow-x: auto; padding: 2px 42px; scrollbar-width: thin; scroll-behavior: smooth; }
+.viewer-strip { display: flex; gap: 6px; overflow-x: auto; padding: 2px 34px; scrollbar-width: thin; scroll-behavior: smooth; }
 .viewer-strip::-webkit-scrollbar { height: 6px; }
 .viewer-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 999px; }
 .viewer-thumb {
-  position: relative; flex: 0 0 132px; width: 132px; aspect-ratio: 16 / 9; border: 2px solid transparent; border-radius: 12px;
+  position: relative; flex: 0 0 96px; width: 96px; aspect-ratio: 16 / 9; border: 2px solid transparent; border-radius: 10px;
   overflow: hidden; background: #151922; cursor: pointer; padding: 0;
 }
 .viewer-thumb video, .viewer-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; background: #151922; }
@@ -101,8 +101,8 @@ button, input { font: inherit; }
 #overlay-title { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: 1.6rem; font-weight: 700; }
 .overlay-sub { margin: 8px 0 0; color: var(--muted); max-width: 28rem; }
 .local-pip {
-  position: absolute; right: 14px; top: 14px; width: min(28%, 220px); aspect-ratio: 16/9;
-  border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  position: absolute; right: 8px; top: 8px; width: min(20%, 150px); aspect-ratio: 16/9;
+  border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 8px 24px rgba(0,0,0,0.45);
   background: #151922; z-index: 3;
 }
 .local-pip.hidden { display: none; }
@@ -112,7 +112,7 @@ body.mode-admin .local-pip { display: none !important; }
   background: rgba(0,0,0,0.55); color: #fff;
 }
 .fs-btn {
-  position: absolute; left: 12px; top: 12px; z-index: 4;
+  position: absolute; left: 8px; top: 8px; z-index: 4;
   width: 40px; height: 40px; display: inline-grid; place-items: center;
   border-radius: 12px; border: 1px solid rgba(255,255,255,0.14);
   background: rgba(18, 22, 30, 0.72); color: var(--text); cursor: pointer;
@@ -194,10 +194,12 @@ body.mode-admin .local-pip { display: none !important; }
   .icon-btn { width: 34px; height: 34px; border-radius: 10px; }
   .stage-card { padding: 10px 0 4px; }
   .side-card { padding: 10px 0 0; }
-  .local-pip { width: min(34%, 150px); right: 10px; top: 10px; }
+  .video-stage { aspect-ratio: 9 / 16; max-height: 72vh; }
+  .local-pip { width: min(24%, 88px); right: 8px; top: 8px; aspect-ratio: 9 / 16; }
   .overlay-card { border-radius: 16px; }
 }
 @media (max-width: 640px) {
-  .viewer-thumb { flex-basis: 108px; width: 108px; }
-  .viewer-panel { left: 8px; right: 8px; bottom: 8px; padding: 8px; }
+  .viewer-thumb { flex-basis: 56px; width: 56px; aspect-ratio: 9 / 16; }
+  .viewer-panel { left: 6px; right: 6px; bottom: 6px; padding: 5px; }
+  .viewer-strip { padding: 2px 30px; gap: 5px; }
 }
