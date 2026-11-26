@@ -152,15 +152,24 @@
             <span>Nama tampilan</span>
             <input id="display-name" type="text" maxlength="32" placeholder="Nama Anda">
           </label>
-          <label class="field toggle-row">
-            <span>Mulai dengan kamera</span>
-            <input id="pref-camera" type="checkbox" checked>
+          <label class="field">
+            <span>Sumber Video</span>
+            <select id="pref-video" class="field-select">
+              <option value="camera">Kamera</option>
+              <option value="screen">Rekam Layar</option>
+              <option value="off">Mati</option>
+            </select>
           </label>
-          <label class="field toggle-row">
-            <span>Mulai dengan mikrofon</span>
-            <input id="pref-mic" type="checkbox" checked>
+          <label class="field">
+            <span>Sumber Audio</span>
+            <select id="pref-audio" class="field-select">
+              <option value="mic">Mic</option>
+              <option value="system">System</option>
+              <option value="both">Mic + System</option>
+              <option value="off">Mati</option>
+            </select>
           </label>
-          <p class="field-note">Pengaturan disimpan di perangkat ini.</p>
+          <p class="field-note">Rekam layar/system audio bergantung dukungan browser/izin. Pengaturan disimpan di perangkat ini.</p>
           <div class="overlay-actions">
             <button id="save-settings" type="button" class="btn-primary">Simpan</button>
           </div>

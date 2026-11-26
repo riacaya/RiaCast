@@ -58,8 +58,8 @@ function bindUI() {
   });
   $('open-device-panel')?.addEventListener('click', () => {
     els.displayName.value = state.settings.displayName || '';
-    els.prefCamera.checked = state.settings.camera !== false;
-    els.prefMic.checked = state.settings.mic !== false;
+    els.prefVideo.value = state.settings.videoSource || 'camera';
+    els.prefAudio.value = state.settings.audioSource || 'mic';
     setDeviceTab('device');
     openOverlay('device-overlay');
   });
@@ -69,8 +69,8 @@ function bindUI() {
 
   els.saveSettings.addEventListener('click', async () => {
     state.settings.displayName = els.displayName.value.trim().slice(0, 32);
-    state.settings.camera = els.prefCamera.checked;
-    state.settings.mic = els.prefMic.checked;
+    state.settings.videoSource = els.prefVideo.value || 'camera';
+    state.settings.audioSource = els.prefAudio.value || 'mic';
     saveSettings();
     closeOverlay('device-overlay');
     log('Pengaturan device disimpan.');

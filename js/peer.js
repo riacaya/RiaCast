@@ -41,9 +41,13 @@ function createFallbackStream() {
 
 async function ensureLocalStream() {
   if (state.localStream) return state.localStream;
-  const wantVideo = state.settings.camera !== false;
-  const wantAudio = state.settings.mic !== false;
-  if (!wantVideo && !wantAudio) {
+  const videoSource = state.settings.videoSource || 'camera';
+  const audioSource = state.settings.audioSource || 'mic';
+  const wantVideo = videoSource !== 'off';
+  const wantMic = audioSource === 'mic' || audioSource === 'both';
+  const wantSystem = audioSource === 'system' || audioSource === 'both';
+
+  if (!wantVideo && !wantMic && !wantSystem) {
     setInfo('media', 'Mati (pengaturan)');
     const fallback = createFallbackStream();
     state.localStream = fallback;
@@ -51,49 +55,140 @@ async function ensureLocalStream() {
     els.localPip.classList.toggle('hidden', isAdmin());
     return fallback;
   }
-  const attempts = [];
-  if (wantVideo && wantAudio) attempts.push({ video: true, audio: true, label: 'Kamera / Mic' });
-  if (wantVideo) attempts.push({ video: true, audio: false, label: 'Kamera saja' });
-  if (wantAudio) attempts.push({ video: false, audio: true, label: 'Mic saja' });
 
-  for (const a of attempts) {
+  const out = new MediaStream();
+  let screenStream = null;
+  let camStream = null;
+  let micStream = null;
+  const labels = [];
+
+  try {
+    if (videoSource === 'screen') {
+      try {
+        screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 } }, audio: wantSystem, systemAudio: wantSystem ? 'include' : 'exclude' });
+        screenStream.getVideoTracks().forEach((t) => out.addTrack(t));
+        labels.push('Layar');
+        if (wantSystem) {
+          const sysA = screenStream.getAudioTracks();
+          if (sysA.length) { sysA.forEach((t) => out.addTrack(t)); labels.push('System'); }
+        }
+      } catch (err) {
+        log('Gagal rekam layar: ' + (err?.name || err?.message || err));
+      }
+    } else if (videoSource === 'camera') {
+      try {
+        camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        camStream.getVideoTracks().forEach((t) => out.addTrack(t));
+        labels.push('Kamera');
+      } catch (err) {
+        log('Gagal kamera: ' + (err?.name || err?.message || err));
+      }
+    }
+
+    if (wantMic) {
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+        micStream.getAudioTracks().forEach((t) => out.addTrack(t));
+        labels.push('Mic');
+      } catch (err) {
+        log('Gagal mic: ' + (err?.name || err?.message || err));
+      }
+    }
+
+    if (wantSystem && !out.getAudioTracks().some((t) => t.label && !micStream?.getAudioTracks().includes(t))) {
+      // Try to get system audio if not already captured from screen share
+      const hasSystem = screenStream && screenStream.getAudioTracks().length > 0;
+      if (!hasSystem) {
+        try {
+          const sys = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true, systemAudio: 'include' });
+          sys.getAudioTracks().forEach((t) => out.addTrack(t));
+          sys.getVideoTracks().forEach((t) => { if (out.getVideoTracks().length === 0) out.addTrack(t); else t.stop(); });
+          if (sys.getAudioTracks().length) labels.push(out.getVideoTracks().length && videoSource === 'off' ? 'Layar+System' : 'System');
+          else sys.getTracks().forEach((t) => { if (!out.getTracks().includes(t)) t.stop(); });
+        } catch (err) {
+          log('Gagal audio system: ' + (err?.name || err?.message || err));
+        }
+      }
+    }
+  } catch (err) {
+    log('Gagal menyiapkan media: ' + (err?.name || err?.message || err));
+  }
+
+  // Mix multiple audio tracks into one
+  const audioTracks = out.getAudioTracks();
+  if (audioTracks.length > 1) {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: a.video, audio: a.audio });
-      state.localStream = stream;
-      els.localVideo.srcObject = stream;
-      els.localPip.classList.toggle('hidden', isAdmin());
-      setInfo('media', a.label);
-      log('Media lokal siap: ' + a.label);
-      if (isAdmin() && !state.spotlightId) setMainToSelf();
-      if (isAdmin()) renderViewerPanel();
-      if (isAdmin() && state.viewers.size === 0) setOverlay('', '', false);
-      return stream;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) {
+        const ac = new Ctx();
+        if (ac.state === 'suspended') await ac.resume().catch(() => {});
+        const dest = ac.createMediaStreamDestination();
+        audioTracks.forEach((t) => {
+          try { ac.createMediaStreamSource(new MediaStream([t])).connect(dest); } catch {}
+        });
+        const mixed = dest.stream.getAudioTracks()[0];
+        if (mixed) {
+          audioTracks.forEach((t) => { out.removeTrack(t); t.stop(); });
+          out.addTrack(mixed);
+          out.__riacastAudioCtx = ac;
+        } else {
+          ac.close().catch(() => {});
+        }
+      }
     } catch (err) {
-      log('Gagal media (' + a.label + '): ' + (err?.name || err?.message || err));
+      log('Gagal mix audio: ' + (err?.name || err?.message || err));
     }
   }
 
-  setInfo('media', 'Media fallback');
-  log('Semua percobaan media gagal, pakai fallback.');
-  const fallback = createFallbackStream();
-  state.localStream = fallback;
-  els.localVideo.srcObject = fallback;
+  // Stop unused helper streams' leftover tracks not in out
+  [screenStream, camStream, micStream].forEach((s) => {
+    if (!s) return;
+    s.getTracks().forEach((t) => { if (!out.getTracks().includes(t)) t.stop(); });
+  });
+
+  const screenVideo = out.getVideoTracks().find((t) => t && screenStream?.getVideoTracks().includes(t));
+  if (screenVideo) {
+    screenVideo.addEventListener('ended', () => {
+      log('Screen share dihentikan.');
+      if (state.localStream === out) { stopLocalStream(); if (isAdmin()) ensureLocalStream().catch(() => {}); }
+    });
+  }
+
+  if (out.getTracks().length === 0) {
+    setInfo('media', 'Media fallback');
+    log('Semua percobaan media gagal, pakai fallback.');
+    const fallback = createFallbackStream();
+    state.localStream = fallback;
+    els.localVideo.srcObject = fallback;
+    els.localPip.classList.toggle('hidden', isAdmin());
+    if (isAdmin() && !state.spotlightId) setMainToSelf();
+    if (isAdmin()) renderViewerPanel();
+    setOverlay('Izin media terbatas', 'Kamera/mic/layar tidak dapat diakses. Periksa izin browser lalu refresh.', true);
+    setTimeout(() => {
+      if (isAdmin()) { setOverlay('', '', false); }
+      else if (!state.adminCall) setOverlay('Mencari admin', 'Mendeteksi penyiar riacast-99...', true);
+    }, 3000);
+    return state.localStream;
+  }
+
+  state.localStream = out;
+  els.localVideo.srcObject = out;
   els.localPip.classList.toggle('hidden', isAdmin());
+  const label = labels.join(' + ') || 'Media';
+  setInfo('media', label);
+  log('Media lokal siap: ' + label);
   if (isAdmin() && !state.spotlightId) setMainToSelf();
   if (isAdmin()) renderViewerPanel();
-  setOverlay('Izin media terbatas', 'Kamera/mic tidak dapat diakses. Periksa izin browser lalu refresh.', true);
-  setTimeout(() => {
-    if (isAdmin()) { setOverlay('', '', false); }
-    else if (!state.adminCall) setOverlay('Mencari admin', 'Mendeteksi penyiar riacast-99...', true);
-  }, 3000);
+  if (isAdmin() && state.viewers.size === 0) setOverlay('', '', false);
   return state.localStream;
 }
 
 function stopLocalStream() {
   if (!state.localStream) return;
-  state.localStream.getTracks().forEach((t) => t.stop());
+  try { state.localStream.__riacastAudioCtx?.close?.(); } catch {}
+  state.localStream.getTracks().forEach((t) => { try { t.stop(); } catch {} });
   state.localStream = null;
-  els.localVideo.srcObject = null;
+  if (els.localVideo) els.localVideo.srcObject = null;
 }
 
 function destroyPeer() {

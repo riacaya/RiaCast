@@ -50,8 +50,8 @@ var els = {
   settingsOverlay: $('settings-overlay'),
   adminOverlay: $('admin-overlay'),
   displayName: $('display-name'),
-  prefCamera: $('pref-camera'),
-  prefMic: $('pref-mic'),
+  prefVideo: $('pref-video'),
+  prefAudio: $('pref-audio'),
   saveSettings: $('save-settings'),
   adminPassword: $('admin-password'),
   adminLogin: $('admin-login'),
@@ -82,13 +82,17 @@ var state = {
 function loadSettings() {
   try {
     const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    const videoSource = ['camera', 'screen', 'off'].includes(raw.videoSource)
+      ? raw.videoSource : (raw.camera === false ? 'off' : 'camera');
+    const audioSource = ['mic', 'system', 'both', 'off'].includes(raw.audioSource)
+      ? raw.audioSource : (raw.mic === false ? 'off' : 'mic');
     return {
       displayName: typeof raw.displayName === 'string' ? raw.displayName.slice(0, 32) : '',
-      camera: raw.camera !== false,
-      mic: raw.mic !== false,
+      videoSource,
+      audioSource,
     };
   } catch {
-    return { displayName: '', camera: true, mic: true };
+    return { displayName: '', videoSource: 'camera', audioSource: 'mic' };
   }
 }
 
