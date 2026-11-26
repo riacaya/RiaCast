@@ -86,9 +86,9 @@ button, input { font: inherit; }
 .header-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .icon-btn {
   width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: 0;
-  border: none; background: rgba(255,255,255,0.03); color: var(--text);
+  border: none; background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--text);
   cursor: pointer; transition: transform .15s ease, background .15s ease;
 }
-.icon-btn:hover { background: rgba(255,255,255,0.08); }
+.icon-btn:hover { background: color-mix(in srgb, var(--accent) 30%, transparent); }
 .icon-btn:active { transform: scale(0.97); }
-.icon-btn.active-admin { color: var(--accent-2); background: rgba(255,179,71,0.08); }
+.icon-btn.active-admin { color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 20%, transparent); }

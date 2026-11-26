@@ -21,12 +21,12 @@
 .viewer-scroll {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
   width: 28px; height: 28px; border: none; border-radius: 0;
-  background: rgba(18, 22, 30, 0.88); color: var(--text); font-size: 1.2rem; line-height: 1; cursor: pointer;
+  background: color-mix(in srgb, var(--accent) 18%, rgba(18,22,30,0.88)); color: var(--text); font-size: 1.2rem; line-height: 1; cursor: pointer;
   display: grid; place-items: center; padding: 0;
 }
 #viewer-scroll-left { left: 2px; }
 #viewer-scroll-right { right: 2px; }
-.viewer-scroll:hover { background: rgba(255,255,255,0.16); border-color: transparent; }
+.viewer-scroll:hover { background: color-mix(in srgb, var(--accent) 32%, rgba(18,22,30,0.88)); border-color: transparent; }
 .viewer-strip { display: flex; gap: 6px; overflow-x: auto; padding: 2px 34px; scrollbar-width: thin; scroll-behavior: smooth; }
 .viewer-strip::-webkit-scrollbar { height: 6px; }
 .viewer-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 0; }
@@ -71,9 +71,9 @@ body.mode-admin .local-pip { display: none !important; }
 .ctrl-btn {
   width: 36px; height: 36px; flex: 0 0 36px; display: inline-grid; place-items: center;
   border-radius: 0; border: none;
-  background: rgba(255,255,255,0.03); color: var(--text); cursor: pointer;
+  background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--text); cursor: pointer;
 }
-.ctrl-btn:hover { background: rgba(255,255,255,0.12); border-color: transparent; }
+.ctrl-btn:hover { background: color-mix(in srgb, var(--accent) 30%, transparent); border-color: transparent; }
 .ctrl-btn svg.hidden { display: none; }
 .ctrl-btn.hidden { display: none; }
 .vol-range { width: 110px; max-width: 24vw; accent-color: var(--accent); cursor: pointer; }
