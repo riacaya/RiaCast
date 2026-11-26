@@ -6,13 +6,13 @@
 .stage-card { padding: 12px 12px 4px 0; min-width: 0; }
 
 .video-stage {
-  position: relative; width: 100%; aspect-ratio: 16 / 9; background: #090b10; border-radius: 18px; overflow: hidden;
+  position: relative; width: 100%; aspect-ratio: 16 / 9; background: #090b10; border-radius: 0; overflow: hidden;
   border: none;
 }
 .main-video, .local-pip video { width: 100%; height: 100%; object-fit: cover; background: #090b10; }
 .main-video { display: block; }
 .viewer-panel {
-  position: absolute; left: 8px; right: 8px; bottom: 54px; padding: 6px; border-radius: 14px;
+  position: absolute; left: 8px; right: 8px; bottom: 54px; padding: 6px; border-radius: 0;
   background: rgba(12, 14, 20, 0.72); border: none; backdrop-filter: blur(10px);
 }
 .viewer-panel.hidden { display: none; }
@@ -20,7 +20,7 @@
 .viewer-strip-wrap { position: relative; }
 .viewer-scroll {
   position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
-  width: 28px; height: 28px; border: none; border-radius: 50%;
+  width: 28px; height: 28px; border: none; border-radius: 0;
   background: rgba(18, 22, 30, 0.88); color: var(--text); font-size: 1.2rem; line-height: 1; cursor: pointer;
   display: grid; place-items: center; padding: 0;
 }
@@ -29,14 +29,14 @@
 .viewer-scroll:hover { background: rgba(255,255,255,0.16); border-color: transparent; }
 .viewer-strip { display: flex; gap: 6px; overflow-x: auto; padding: 2px 34px; scrollbar-width: thin; scroll-behavior: smooth; }
 .viewer-strip::-webkit-scrollbar { height: 6px; }
-.viewer-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 999px; }
+.viewer-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 0; }
 .viewer-thumb {
-  position: relative; flex: 0 0 96px; width: 96px; aspect-ratio: 16 / 9; border: 2px solid transparent; border-radius: 10px;
+  position: relative; flex: 0 0 96px; width: 96px; aspect-ratio: 16 / 9; border: 2px solid transparent; border-radius: 0;
   overflow: hidden; background: #151922; cursor: pointer; padding: 0;
 }
 .viewer-thumb video, .viewer-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; background: #151922; }
 .viewer-thumb .thumb-label {
-  position: absolute; left: 6px; bottom: 6px; right: 6px; padding: 3px 6px; border-radius: 999px; font-size: 0.66rem;
+  position: absolute; left: 6px; bottom: 6px; right: 6px; padding: 3px 6px; border-radius: 0; font-size: 0.66rem;
   background: rgba(0,0,0,0.55); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left;
 }
 .viewer-thumb.active { border-color: transparent; box-shadow: 0 0 0 1px rgba(255,106,61,0.35); }
@@ -48,29 +48,29 @@
 }
 .video-overlay.hidden { display: none; }
 .overlay-inner { text-align: center; }
-.overlay-logo { width: 72px; height: 72px; border-radius: 50%; margin-bottom: 14px; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35)); }
+.overlay-logo { width: 72px; height: 72px; border-radius: 0; margin-bottom: 14px; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35)); }
 #overlay-title { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: 1.6rem; font-weight: 700; }
 .overlay-sub { margin: 8px 0 0; color: var(--muted); max-width: 28rem; }
 .local-pip {
   position: absolute; right: 8px; top: 8px; width: min(20%, 150px); aspect-ratio: 16/9;
-  border-radius: 12px; overflow: hidden; border: none; box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  border-radius: 0; overflow: hidden; border: none; box-shadow: 0 8px 24px rgba(0,0,0,0.45);
   background: #151922; z-index: 3;
 }
 .local-pip.hidden { display: none; }
 body.mode-admin .local-pip { display: none !important; }
 .pip-label {
-  position: absolute; left: 8px; bottom: 8px; padding: 3px 7px; border-radius: 999px; font-size: 0.68rem;
+  position: absolute; left: 8px; bottom: 8px; padding: 3px 7px; border-radius: 0; font-size: 0.68rem;
   background: rgba(0,0,0,0.55); color: #fff;
 }
 .video-controls {
   position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 4;
   display: flex; align-items: center; gap: 8px; padding: 6px 8px;
-  border-radius: 14px; background: rgba(12, 14, 20, 0.72); border: none;
+  border-radius: 0; background: rgba(12, 14, 20, 0.72); border: none;
   backdrop-filter: blur(10px);
 }
 .ctrl-btn {
   width: 36px; height: 36px; flex: 0 0 36px; display: inline-grid; place-items: center;
-  border-radius: 50%; border: none;
+  border-radius: 0; border: none;
   background: rgba(255,255,255,0.03); color: var(--text); cursor: pointer;
 }
 .ctrl-btn:hover { background: rgba(255,255,255,0.12); border-color: transparent; }

@@ -65,7 +65,7 @@ body {
               linear-gradient(180deg, var(--bg-2), var(--bg));
 }
 button, input { font: inherit; }
-.bg-orb { position: fixed; border-radius: 50%; filter: blur(40px); pointer-events: none; opacity: 0.45; }
+.bg-orb { position: fixed; border-radius: 0; filter: blur(40px); pointer-events: none; opacity: 0.45; }
 .orb-a { width: 260px; height: 260px; background: #ff6a3d33; top: -80px; right: 10%; }
 .orb-b { width: 320px; height: 320px; background: #3da9ff22; bottom: -120px; left: -60px; }
 .app-shell { width: min(1400px, calc(100vw - 32px)); margin: 0 auto; padding: 0 0 28px; position: relative; }
@@ -79,13 +79,13 @@ button, input { font: inherit; }
   border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.brand-logo { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; }
+.brand-logo { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 0; }
 .brand-text { min-width: 0; }
 .brand-title { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: clamp(1.1rem, 1.8vw, 1.45rem); line-height: 1; letter-spacing: -0.02em; }
 .brand-subtitle { margin: 2px 0 0; color: var(--muted); font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .header-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .icon-btn {
-  width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: 50%;
+  width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: 0;
   border: none; background: rgba(255,255,255,0.03); color: var(--text);
   cursor: pointer; transition: transform .15s ease, background .15s ease;
 }
