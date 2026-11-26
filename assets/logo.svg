@@ -5,9 +5,9 @@
       <stop offset="100%" stop-color="#ff9a3c"/>
     </linearGradient>
   </defs>
-  <rect width="128" height="128" rx="28" fill="#14161d"/>
+  <circle cx="64" cy="64" r="64" fill="none"/>
   <circle cx="64" cy="64" r="38" fill="none" stroke="url(#g)" stroke-width="8"/>
   <path d="M52 46l34 18-34 18z" fill="url(#g)"/>
   <circle cx="92" cy="36" r="10" fill="#ff5a3c"/>
-  <path d="M92 31v10M87 36h10" stroke="#14161d" stroke-width="3" stroke-linecap="round"/>
+  <path d="M92 31v10M87 36h10" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
 </svg>

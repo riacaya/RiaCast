@@ -48,7 +48,7 @@
 }
 .video-overlay.hidden { display: none; }
 .overlay-inner { text-align: center; }
-.overlay-logo { width: 72px; height: 72px; border-radius: 22px; margin-bottom: 14px; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35)); }
+.overlay-logo { width: 72px; height: 72px; border-radius: 50%; margin-bottom: 14px; filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35)); }
 #overlay-title { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: 1.6rem; font-weight: 700; }
 .overlay-sub { margin: 8px 0 0; color: var(--muted); max-width: 28rem; }
 .local-pip {
