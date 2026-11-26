@@ -1,0 +1,17 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Build/platform folders (not pushed per project policy)
+windows/
+android/
+
+# Local env/secrets
+.env
+.env.*
+*.local
+
+github.txt
