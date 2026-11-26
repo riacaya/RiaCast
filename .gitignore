@@ -15,3 +15,8 @@ android/
 *.local
 
 github.txt
+
+# Android local
+**/local.properties
+**/.gradle/
+**/build/

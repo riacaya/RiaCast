@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RiaCast</string>
+    <string name="message_channel">Pesan</string>
+    <string name="call_channel">Panggilan</string>
+</resources>
