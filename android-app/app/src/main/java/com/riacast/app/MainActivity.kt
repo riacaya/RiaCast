@@ -3,7 +3,6 @@ package com.riacast.app
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
-import android.app.NotificationManager
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
@@ -209,8 +208,7 @@ class MainActivity : Activity() {
         private const val REQ_CAPTURE = 12
         private const val REQ_PICK = 13
         private val REQUIRED = arrayOf(
-            Manifest.permission.POST_NOTIFICATIONS,
-            Manifest.permission.RECORD_AUDIO,
+                        Manifest.permission.RECORD_AUDIO,
             Manifest.permission.CAMERA,
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -243,41 +241,7 @@ class MainActivity : Activity() {
         webViewRef = WeakReference(webView)
         setupWebView()
         webView.loadUrl(REMOTE_APP_URL)
-        MyFirebaseMessagingService.fetchToken(this)
-        handleCallIntent(intent)
-        ensureFullScreenIntentPermission()
-    }
-
-    /**
-     * Android 14+ dengan targetSdk 35: izin USE_FULL_SCREEN_INTENT tidak lagi
-     * otomatis untuk aplikasi non-dialer. Tanpa izin ini panggilan hanya
-     * memunculkan heads-up — panel tidak tampil saat layar mati. Arahkan ke
-     * pengaturan satu kali; dilewati saat app dibuka oleh panggilan supaya
-     * dialog tidak menutupi layar dering.
-     */
-    private fun ensureFullScreenIntentPermission() {
-        if (Build.VERSION.SDK_INT < 34) return
-        val notifier = getSystemService(NotificationManager::class.java) ?: return
-        if (notifier.canUseFullScreenIntent()) return
-        if (intent?.getStringExtra(Notify.EXTRA_CALL_ACTION) != null) return
-        val prefs = getSharedPreferences("riacast-setup", MODE_PRIVATE)
-        if (prefs.getBoolean("fsei-asked", false)) return
-        prefs.edit().putBoolean("fsei-asked", true).apply()
-        AlertDialog.Builder(this)
-            .setTitle("Izin tampil layar penuh")
-            .setMessage("Agar panel panggilan muncul saat layar mati/terkunci, izinkan \"Full-screen intents\" untuk RiaCast pada pengaturan berikut.")
-            .setPositiveButton("Buka Pengaturan") { _, _ ->
-                runCatching {
-                    startActivity(
-                        Intent(
-                            Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
-                            Uri.parse("package:$packageName"),
-                        ),
-                    )
-                }
-            }
-            .setNegativeButton("Nanti", null)
-            .show()
+                handleCallIntent(intent)
     }
 
     override fun onNewIntent(intent: Intent?) {
