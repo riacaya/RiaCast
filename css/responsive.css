@@ -22,6 +22,7 @@
     border-radius: 0; border: 0; display: flex; flex-direction: column;
   }
   .overlay:not(.drawer-right) .overlay-body { flex: 1; overflow: auto; max-height: none; }
+  .overlay:not(.drawer-right) .chat-overlay-body { overflow: hidden; height: auto; min-height: 0; }
   .overlay:not(.drawer-right) .overlay-card-log { width: 100%; }
   .mobile-only { display: inline-flex; }
   .app-footer { font-size: 0.76rem; gap: 6px; }

@@ -138,3 +138,7 @@
 .chat-input::placeholder { color: var(--muted); }
 .chat-send { width: 36px; height: 36px; flex: 0 0 36px; display: inline-grid; place-items: center; border: none; background: color-mix(in srgb, var(--accent) 22%, rgba(255,255,255,0.04)); color: var(--text); cursor: pointer; }
 .chat-send:hover { background: color-mix(in srgb, var(--accent) 35%, rgba(255,255,255,0.06)); }
+/* Chat panel */
+.overlay-card-chat { width: min(520px, 100%); }
+.chat-overlay-body { display: flex; flex-direction: column; height: min(60vh, 520px); }
+.chat-overlay-body .chat-messages { flex: 1; min-height: 0; }

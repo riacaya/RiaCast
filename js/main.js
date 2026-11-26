@@ -16,7 +16,7 @@ function bindUI() {
   els.viewerScrollRight?.addEventListener('click', () => {
     els.viewerStrip.scrollBy({ left: 240, behavior: 'smooth' });
   });
-  ['settings-overlay', 'admin-overlay', 'device-overlay', 'about-overlay'].forEach((id) => {
+  ['settings-overlay', 'admin-overlay', 'device-overlay', 'about-overlay', 'chat-overlay'].forEach((id) => {
     const ov = $(id);
     ov?.addEventListener('click', (e) => { if (e.target === ov) ov.classList.add('hidden'); });
   });
@@ -26,6 +26,7 @@ function bindUI() {
       closeOverlay('admin-overlay');
       closeOverlay('device-overlay');
       closeOverlay('about-overlay');
+      closeOverlay('chat-overlay');
     }
   });
   els.btnFullscreen?.addEventListener('click', toggleFullscreen);
@@ -92,6 +93,11 @@ function bindUI() {
     openOverlay('device-overlay');
   });
   $('open-about-panel')?.addEventListener('click', () => openOverlay('about-overlay'));
+  $('open-chat-panel')?.addEventListener('click', () => {
+    closeOverlay('settings-overlay');
+    openOverlay('chat-overlay');
+    setTimeout(() => els.chatInput?.focus(), 50);
+  });
   qsa('.tab-btn[data-tab]').forEach((btn) => btn.addEventListener('click', () => setDeviceTab(btn.dataset.tab)));
   qsa('.theme-btn[data-theme]').forEach((btn) => btn.addEventListener('click', () => applyTheme(btn.dataset.theme)));
 
