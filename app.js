@@ -20,7 +20,8 @@
     mainVideo: $('main-video'),
     viewerPanel: $('viewer-panel'),
     viewerStrip: $('viewer-strip'),
-    viewerPanelCount: $('viewer-panel-count'),
+    viewerScrollLeft: $('viewer-scroll-left'),
+    viewerScrollRight: $('viewer-scroll-right'),
     videoOverlay: $('video-overlay'),
     overlayTitle: $('overlay-title'),
     overlaySub: $('overlay-sub'),
@@ -178,8 +179,6 @@
   function renderViewerPanel() {
     if (!isAdmin()) return;
     els.viewerPanel.classList.remove('hidden');
-    const count = state.viewers.size;
-    els.viewerPanelCount.textContent = String(count);
 
     // Ensure self thumb
     let selfThumb = els.viewerStrip.querySelector('[data-peer="__self__"]');
@@ -239,7 +238,6 @@
       viewer.video.srcObject = viewer.stream;
     }
     thumb.classList.toggle('active', state.spotlightId === peerId);
-    els.viewerPanelCount.textContent = String(state.viewers.size);
   }
 
   function removeViewerThumb(peerId) {
@@ -804,6 +802,12 @@
   function bindUI() {
     qsa('[data-close]').forEach((btn) => {
       btn.addEventListener('click', () => closeOverlay(btn.getAttribute('data-close')));
+    });
+    els.viewerScrollLeft?.addEventListener('click', () => {
+      els.viewerStrip.scrollBy({ left: -240, behavior: 'smooth' });
+    });
+    els.viewerScrollRight?.addEventListener('click', () => {
+      els.viewerStrip.scrollBy({ left: 240, behavior: 'smooth' });
     });
     [els.settingsOverlay, els.adminOverlay].forEach((ov) => {
       ov.addEventListener('click', (e) => { if (e.target === ov) ov.classList.add('hidden'); });
