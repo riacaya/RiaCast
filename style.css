@@ -102,9 +102,9 @@ button, input { font: inherit; }
 #overlay-title { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: 1.6rem; font-weight: 700; }
 .overlay-sub { margin: 8px 0 0; color: var(--muted); max-width: 28rem; }
 .local-pip {
-  position: absolute; right: 14px; bottom: 14px; width: min(28%, 220px); aspect-ratio: 16/9;
+  position: absolute; right: 14px; top: 14px; width: min(28%, 220px); aspect-ratio: 16/9;
   border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 10px 30px rgba(0,0,0,0.45);
-  background: #151922;
+  background: #151922; z-index: 3;
 }
 .local-pip.hidden { display: none; }
 body.mode-admin .local-pip { display: none !important; }
@@ -178,7 +178,7 @@ body.mode-admin .local-pip { display: none !important; }
   .brand-subtitle { font-size: 0.8rem; }
   .icon-btn { width: 40px; height: 40px; border-radius: 12px; }
   .stage-card, .side-card { padding: 14px; border-radius: 16px; }
-  .local-pip { width: min(34%, 150px); right: 10px; bottom: 10px; }
+  .local-pip { width: min(34%, 150px); right: 10px; top: 10px; }
   .overlay-card { border-radius: 16px; }
 }
 @media (max-width: 640px) {
