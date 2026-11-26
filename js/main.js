@@ -53,6 +53,29 @@ function bindUI() {
   els.mainVideo?.addEventListener('pause', syncPlayUI);
   els.mainVideo?.addEventListener('volumechange', syncVolumeUI);
 
+  els.btnSharePause?.addEventListener('click', () => {
+    const s = state.localStream; if (!s) return;
+    const videoTracks = s.getVideoTracks();
+    if (!videoTracks.length) return;
+    state.screenPaused = !state.screenPaused;
+    videoTracks.forEach((t) => { t.enabled = !state.screenPaused; });
+    syncShareUI();
+    log(state.screenPaused ? 'Screen share dijeda.' : 'Screen share dilanjutkan.');
+  });
+  els.btnShareStop?.addEventListener('click', async () => {
+    log('Stop share diminta.');
+    state.screenPaused = false;
+    state.screenSharing = false;
+    syncShareUI();
+    if (state.settings.videoSource === 'screen') {
+      state.settings.videoSource = 'camera';
+      if (els.prefVideo) els.prefVideo.value = 'camera';
+      saveSettings();
+    }
+    stopLocalStream();
+    try { await ensureLocalStream(); } catch {}
+  });
+
   els.btnSettings.addEventListener('click', () => {
     openOverlay('settings-overlay');
   });
@@ -146,6 +169,7 @@ async function boot() {
   updateOnlineTime();
   syncPlayUI();
   syncVolumeUI();
+  syncShareUI();
   els.displayName.value = state.settings.displayName || '';
   els.prefVideo.value = state.settings.videoSource || 'camera';
   els.prefAudio.value = state.settings.audioSource || 'mic';

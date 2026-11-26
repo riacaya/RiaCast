@@ -161,6 +161,9 @@ async function ensureLocalStream() {
     state.localStream = fallback;
     els.localVideo.srcObject = fallback;
     els.localPip.classList.toggle('hidden', isAdmin());
+    state.screenSharing = false;
+    state.screenPaused = false;
+    if (typeof syncShareUI === 'function') syncShareUI();
     if (isAdmin() && !state.spotlightId) setMainToSelf();
     if (isAdmin()) renderViewerPanel();
     setOverlay('Izin media terbatas', 'Kamera/mic/layar tidak dapat diakses. Periksa izin browser lalu refresh.', true);
@@ -177,6 +180,9 @@ async function ensureLocalStream() {
   const label = labels.join(' + ') || 'Media';
   setInfo('media', label);
   log('Media lokal siap: ' + label);
+  state.screenSharing = !!(videoSource === 'screen' && screenStream && out.getVideoTracks().some((t) => screenStream.getVideoTracks().includes(t)));
+  state.screenPaused = false;
+  syncShareUI();
   if (isAdmin() && !state.spotlightId) setMainToSelf();
   if (isAdmin()) renderViewerPanel();
   if (isAdmin() && state.viewers.size === 0) setOverlay('', '', false);
@@ -188,6 +194,9 @@ function stopLocalStream() {
   try { state.localStream.__riacastAudioCtx?.close?.(); } catch {}
   state.localStream.getTracks().forEach((t) => { try { t.stop(); } catch {} });
   state.localStream = null;
+  state.screenSharing = false;
+  state.screenPaused = false;
+  if (typeof syncShareUI === 'function') syncShareUI();
   if (els.localVideo) els.localVideo.srcObject = null;
 }
 

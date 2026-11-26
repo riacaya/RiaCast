@@ -305,6 +305,19 @@ function syncVolumeUI() {
   }
 }
 
+function syncShareUI() {
+  const active = !!state.screenSharing;
+  els.btnSharePause?.classList.toggle('hidden', !active);
+  els.btnShareStop?.classList.toggle('hidden', !active);
+  const paused = !!state.screenPaused;
+  els.iconSharePause?.classList.toggle('hidden', paused);
+  els.iconShareResume?.classList.toggle('hidden', !paused);
+  if (els.btnSharePause) {
+    els.btnSharePause.setAttribute('aria-label', paused ? 'Lanjut Share' : 'Jeda Share');
+    els.btnSharePause.setAttribute('title', paused ? 'Lanjut Share' : 'Jeda Share');
+  }
+}
+
 function updateOnlineTime() {
   if (els.timeDisplay) els.timeDisplay.textContent = formatClock(Date.now() - (state.onlineSince || Date.now()));
 }

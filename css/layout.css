@@ -75,6 +75,7 @@ body.mode-admin .local-pip { display: none !important; }
 }
 .ctrl-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.24); }
 .ctrl-btn svg.hidden { display: none; }
+.ctrl-btn.hidden { display: none; }
 .vol-range { width: 110px; max-width: 24vw; accent-color: var(--accent); cursor: pointer; }
 .time-display { font-size: 0.78rem; color: #e6edf5; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ctrl-spacer { flex: 1; }

@@ -40,6 +40,10 @@ var els = {
   btnFullscreen: $('btn-fullscreen'),
   btnPlay: $('btn-play'),
   btnMute: $('btn-mute'),
+  btnSharePause: $('btn-share-pause'),
+  btnShareStop: $('btn-share-stop'),
+  iconSharePause: $('icon-share-pause'),
+  iconShareResume: $('icon-share-resume'),
   volRange: $('vol-range'),
   timeDisplay: $('time-display'),
   iconPlay: $('icon-play'),
@@ -76,6 +80,8 @@ var state = {
   detectTimer: null,
   reconnectTimer: null,
   onlineSince: Date.now(),
+  screenSharing: false,
+  screenPaused: false,
   destroyed: false,
 };
 
