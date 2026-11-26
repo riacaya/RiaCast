@@ -57,6 +57,7 @@
     viewerId: '',
     adminConn: null,
     adminCall: null,
+    adminCallConnected: false,
     adminDetected: false,
     viewers: new Map(), // peerId -> { conn, call, tile, video, name }
     detectTimer: null,
@@ -373,7 +374,7 @@
   function getOrCreateViewer(peerId) {
     let v = state.viewers.get(peerId);
     if (!v) {
-      v = { peerId, conn: null, call: null, tile: null, video: null, name: peerId };
+      v = { peerId, conn: null, call: null, tile: null, video: null, name: peerId, lastCallAt: 0, callConnected: false };
       state.viewers.set(peerId, v);
     }
     return v;
@@ -412,15 +413,25 @@
       send(viewer.conn, { type: 'admin-error', message: 'Admin belum memberi izin kamera/mic.' });
       return;
     }
-    if (viewer.call && viewer.call.open) {
-      send(viewer.conn, { type: 'call-approved' });
-      return;
-    }
     send(viewer.conn, { type: 'call-approved' });
-    // Admin initiates media call to viewer (auto, no click)
+
+    if (viewer.callConnected && viewer.call && viewer.call.open) return;
+    const now = Date.now();
+    if (viewer.call && !viewer.callConnected && (now - (viewer.lastCallAt || 0)) < 12000) {
+      return; // call sedang nego, jangan spam
+    }
+
+    if (viewer.call) {
+      try { viewer.call.close(); } catch {}
+      viewer.call = null;
+      viewer.callConnected = false;
+    }
+
     try {
       const call = state.peer.call(peerId, state.localStream, { metadata: { from: ADMIN_PEER_ID, type: 'broadcast' } });
       if (!call) { log(`Gagal memanggil ${peerId}`); return; }
+      viewer.lastCallAt = now;
+      viewer.callConnected = false;
       bindAdminCall(peerId, call);
       log(`Memanggil penonton: ${viewer.name}`);
     } catch (e) {
@@ -434,8 +445,11 @@
       try { viewer.call.close(); } catch {}
     }
     viewer.call = call;
+    viewer.callConnected = false;
 
     call.on('stream', (remoteStream) => {
+      if (viewer.call !== call) return;
+      viewer.callConnected = true;
       attachViewerStream(peerId, remoteStream);
       setStatus(`Terhubung ke ${state.viewers.size} penonton`, 'ok');
       setOverlay('Siaran aktif', `${state.viewers.size} penonton terhubung`, false);
@@ -444,15 +458,23 @@
 
     call.on('close', () => {
       log(`Call tertutup: ${peerId}`);
-      if (viewer.call === call) viewer.call = null;
+      if (viewer.call === call) {
+        viewer.call = null;
+        viewer.callConnected = false;
+      }
       removeViewerTile(peerId);
       updateCounts();
       if (state.viewers.size === 0) setOverlay('Mode Penyiar', 'Menunggu penonton terhubung...', true);
+      // If viewer still connected via data, retry call
+      if (viewer.conn && viewer.conn.open && !state.destroyed) {
+        setTimeout(() => { if (state.viewers.has(peerId)) autoApproveViewer(peerId); }, 1500);
+      }
     });
 
     call.on('error', (err) => {
       console.warn('admin call error', peerId, err);
       log(`Call error ${peerId}: ${err?.type || err?.message || err}`);
+      if (viewer.call === call) viewer.callConnected = false;
     });
   }
 
@@ -623,6 +645,11 @@
       try { call.close(); } catch {}
       return;
     }
+    if (state.adminCall && state.adminCallConnected && state.adminCall.open) {
+      log('Panggilan duplikat dari admin diabaikan.');
+      try { call.close(); } catch {}
+      return;
+    }
     log('Panggilan masuk dari admin - auto answer');
     try { await ensureLocalStream(); } catch { return; }
     try {
@@ -639,7 +666,10 @@
       try { state.adminCall.close(); } catch {}
     }
     state.adminCall = call;
+    state.adminCallConnected = false;
     call.on('stream', (remoteStream) => {
+      if (state.adminCall !== call) return;
+      state.adminCallConnected = true;
       els.remoteVideo.srcObject = remoteStream;
       els.remoteVideo.play().catch(() => {});
       setOverlay('', '', false);
@@ -651,19 +681,24 @@
     call.on('close', () => {
       if (state.adminCall !== call) return;
       state.adminCall = null;
+      state.adminCallConnected = false;
       els.remoteVideo.srcObject = null;
       setStatus('Siaran terputus', '');
       if (els.stageTitle) els.stageTitle.textContent = 'Menunggu siaran';
       setOverlay('Siaran terputus', 'Menunggu admin kembali online...', true);
       log('Call admin tertutup.');
       updateCounts();
-      // re-request when admin still connected
       if (state.adminConn && state.adminConn.open) {
-        send(state.adminConn, { type: 'request-call', name: getDisplayName(), viewerId: state.viewerId });
+        setTimeout(() => {
+          if (state.adminConn && state.adminConn.open && !state.adminCall) {
+            send(state.adminConn, { type: 'request-call', name: getDisplayName(), viewerId: state.viewerId });
+          }
+        }, 1200);
       }
     });
     call.on('error', (err) => {
       log('Call error: ' + (err?.type || err?.message || err));
+      if (state.adminCall === call) state.adminCallConnected = false;
     });
   }
 
