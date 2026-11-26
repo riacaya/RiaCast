@@ -140,7 +140,7 @@
     }
     setInfo('mode', admin ? 'Penyiar (Admin)' : 'Penonton');
     setInfo('targetId', admin ? 'Menunggu penonton' : ADMIN_PEER_ID);
-    els.btnAdmin.classList.toggle('active-admin', admin);
+    els.btnAdmin?.classList.toggle('active-admin', admin);
     els.localLabel.textContent = 'Kamu';
     els.localPip.classList.toggle('hidden', admin);
     els.viewerPanel.classList.toggle('hidden', !admin);
@@ -1020,7 +1020,7 @@
       }
     });
 
-    els.btnAdmin.addEventListener('click', () => {
+    $('open-admin-panel')?.addEventListener('click', () => {
       if (isAdmin()) {
         log('Sudah dalam mode penyiar.');
         setStatus('Mode penyiar aktif', 'ok');
@@ -1028,6 +1028,7 @@
       }
       els.adminPassword.value = '';
       els.adminError.textContent = '';
+      closeOverlay('settings-overlay');
       openOverlay('admin-overlay');
       setTimeout(() => els.adminPassword.focus(), 50);
     });

@@ -113,7 +113,7 @@ body.mode-admin .local-pip { display: none !important; }
   background: rgba(0,0,0,0.55); color: #fff;
 }
 .fs-btn {
-  position: absolute; left: 8px; top: 8px; z-index: 4;
+  position: absolute; right: 8px; bottom: 8px; z-index: 4;
   width: 40px; height: 40px; display: inline-grid; place-items: center;
   border-radius: 12px; border: 1px solid rgba(255,255,255,0.14);
   background: rgba(18, 22, 30, 0.72); color: var(--text); cursor: pointer;
@@ -196,10 +196,10 @@ body.mode-admin .local-pip { display: none !important; }
 .btn-primary:hover { filter: brightness(1.04); }
 .btn-primary:disabled { opacity: 0.6; cursor: wait; }
 
-.settings-shortcuts { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 14px; }
+.settings-shortcuts { display: flex; flex-direction: column; gap: 10px; margin: 0 0 14px; }
 .shortcut-btn {
-  padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line);
-  background: rgba(255,255,255,0.04); color: var(--text); cursor: pointer; font: inherit; font-size: 0.88rem;
+  width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line);
+  background: rgba(255,255,255,0.04); color: var(--text); cursor: pointer; font: inherit; font-size: 0.88rem; text-align: left;
 }
 .shortcut-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.16); }
 .mobile-only { display: none; }
@@ -207,8 +207,8 @@ body.mode-admin .local-pip { display: none !important; }
 .overlay-body-log { max-height: min(60vh, 520px); display: flex; flex-direction: column; }
 .overlay-body-log .log-list { max-height: none; min-height: 200px; }
 .app-footer {
-  display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap;
-  padding: 14px 0 0; margin-top: 2px; color: var(--muted); font-size: 0.82rem; text-align: center;
+  display: flex; justify-content: flex-start; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 14px 0 0; margin-top: 2px; color: var(--muted); font-size: 0.82rem; text-align: left;
 }
 .app-footer a { color: #dce3ec; text-decoration: none; }
 .app-footer a:hover { color: var(--text); text-decoration: underline; }
@@ -239,4 +239,5 @@ body.mode-admin .local-pip { display: none !important; }
   .viewer-thumb { flex-basis: 56px; width: 56px; aspect-ratio: 9 / 16; }
   .viewer-panel { left: 6px; right: 6px; bottom: 6px; padding: 5px; }
   .viewer-strip { padding: 2px 30px; gap: 5px; }
+  .video-stage:has(.viewer-panel:not(.hidden)) .fs-btn { bottom: 124px; }
 }
