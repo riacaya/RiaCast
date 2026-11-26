@@ -302,32 +302,42 @@
       els.localPip.classList.remove('hidden');
       return fallback;
     }
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: wantVideo, audio: wantAudio });
-      state.localStream = stream;
-      els.localVideo.srcObject = stream;
-      els.localPip.classList.remove('hidden');
-      els.infoMedia.textContent = `${wantVideo ? 'Kamera' : 'Tanpa kamera'} / ${wantAudio ? 'Mic' : 'Tanpa mic'}`;
-      log('Media lokal siap.');
-      if (isAdmin() && !state.spotlightId) setMainToSelf();
-      if (isAdmin()) renderViewerPanel();
-      return stream;
-    } catch (err) {
-      els.infoMedia.textContent = 'Media fallback';
-      log('Gagal akses kamera/mic, pakai fallback: ' + (err?.message || err));
-      const fallback = createFallbackStream();
-      state.localStream = fallback;
-      els.localVideo.srcObject = fallback;
-      els.localPip.classList.remove('hidden');
-      if (isAdmin() && !state.spotlightId) setMainToSelf();
-      if (isAdmin()) renderViewerPanel();
-      setOverlay('Izin media terbatas', 'Menggunakan stream fallback. Izinkan kamera/mic untuk pengalaman penuh.', true);
-      setTimeout(() => {
-        if (isAdmin()) { if (state.viewers.size === 0) setOverlay('Mode Penyiar', 'Menunggu penonton terhubung...', true); else setOverlay('', '', false); }
-        else if (!state.adminCall) setOverlay('Mencari admin', 'Mendeteksi penyiar riacast-99...', true);
-      }, 2500);
-      return state.localStream;
+    const attempts = [];
+    if (wantVideo && wantAudio) attempts.push({ video: true, audio: true, label: 'Kamera / Mic' });
+    if (wantVideo) attempts.push({ video: true, audio: false, label: 'Kamera saja' });
+    if (wantAudio) attempts.push({ video: false, audio: true, label: 'Mic saja' });
+
+    for (const a of attempts) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: a.video, audio: a.audio });
+        state.localStream = stream;
+        els.localVideo.srcObject = stream;
+        els.localPip.classList.remove('hidden');
+        els.infoMedia.textContent = a.label;
+        log('Media lokal siap: ' + a.label);
+        if (isAdmin() && !state.spotlightId) setMainToSelf();
+        if (isAdmin()) renderViewerPanel();
+        if (isAdmin() && state.viewers.size === 0) setOverlay('', '', false);
+        return stream;
+      } catch (err) {
+        log('Gagal media (' + a.label + '): ' + (err?.name || err?.message || err));
+      }
     }
+
+    els.infoMedia.textContent = 'Media fallback';
+    log('Semua percobaan media gagal, pakai fallback.');
+    const fallback = createFallbackStream();
+    state.localStream = fallback;
+    els.localVideo.srcObject = fallback;
+    els.localPip.classList.remove('hidden');
+    if (isAdmin() && !state.spotlightId) setMainToSelf();
+    if (isAdmin()) renderViewerPanel();
+    setOverlay('Izin media terbatas', 'Kamera/mic tidak dapat diakses. Periksa izin browser lalu refresh.', true);
+    setTimeout(() => {
+      if (isAdmin()) { setOverlay('', '', false); }
+      else if (!state.adminCall) setOverlay('Mencari admin', 'Mendeteksi penyiar riacast-99...', true);
+    }, 3000);
+    return state.localStream;
   }
 
   function stopLocalStream() {
@@ -346,7 +356,7 @@
     for (const v of state.viewers.values()) {
       try { v.call?.close(); } catch {}
       try { v.conn?.close(); } catch {}
-      v.tile?.remove();
+      v.thumb?.remove();
     }
     state.viewers.clear();
     try { state.peer?.destroy(); } catch {}
@@ -909,8 +919,8 @@
       log(`Memulai mode penonton: ${state.viewerId}`);
     }
 
-    try { await ensureLocalStream(); } catch {}
     bootPeer();
+    ensureLocalStream().catch((e) => log('Media init error: ' + (e?.message || e)));
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

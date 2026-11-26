@@ -67,14 +67,17 @@ button, input { font: inherit; }
   background: rgba(12, 14, 20, 0.72); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(10px);
 }
 .viewer-panel.hidden { display: none; }
-.viewer-strip-wrap { display: flex; align-items: center; gap: 8px; }
+.viewer-strip-wrap { position: relative; }
 .viewer-scroll {
-  flex: 0 0 34px; width: 34px; height: 54px; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
-  background: rgba(255,255,255,0.05); color: var(--text); font-size: 1.5rem; line-height: 1; cursor: pointer;
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+  width: 32px; height: 32px; border: 1px solid rgba(255,255,255,0.14); border-radius: 50%;
+  background: rgba(18, 22, 30, 0.88); color: var(--text); font-size: 1.3rem; line-height: 1; cursor: pointer;
+  display: grid; place-items: center; padding: 0;
 }
-.viewer-scroll:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
-.viewer-scroll:disabled { opacity: 0.35; cursor: default; }
-.viewer-strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; flex: 1; min-width: 0; scroll-behavior: smooth; }
+#viewer-scroll-left { left: 4px; }
+#viewer-scroll-right { right: 4px; }
+.viewer-scroll:hover { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.24); }
+.viewer-strip { display: flex; gap: 8px; overflow-x: auto; padding: 2px 42px; scrollbar-width: thin; scroll-behavior: smooth; }
 .viewer-strip::-webkit-scrollbar { height: 6px; }
 .viewer-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 999px; }
 .viewer-thumb {
