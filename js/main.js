@@ -146,8 +146,8 @@ async function boot() {
   syncPlayUI();
   syncVolumeUI();
   els.displayName.value = state.settings.displayName || '';
-  els.prefCamera.checked = state.settings.camera !== false;
-  els.prefMic.checked = state.settings.mic !== false;
+  els.prefVideo.value = state.settings.videoSource || 'camera';
+  els.prefAudio.value = state.settings.audioSource || 'mic';
 
   if (!window.Peer) {
     setStatus('PeerJS tidak tersedia', 'err');
