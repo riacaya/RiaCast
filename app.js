@@ -811,33 +811,10 @@
   function openOverlay(id) { $(id)?.classList.remove('hidden'); }
   function closeOverlay(id) { $(id)?.classList.add('hidden'); }
 
-  function syncSidebarHeight() {
-    const stage = document.querySelector('.video-stage');
-    const side = document.querySelector('.side-card');
-    const stageCard = document.querySelector('.stage-card');
-    if (!stage || !side || !stageCard) return;
-    if (window.innerWidth <= 980) {
-      side.style.height = '';
-      side.style.marginTop = '';
-      side.style.marginBottom = '';
-      return;
-    }
-    const stageRect = stage.getBoundingClientRect();
-    const cardRect = stageCard.getBoundingClientRect();
-    side.style.marginTop = Math.max(0, stageRect.top - cardRect.top) + 'px';
-    side.style.marginBottom = Math.max(0, cardRect.bottom - stageRect.bottom) + 'px';
-    side.style.height = stageRect.height + 'px';
-  }
-
   function bindUI() {
     qsa('[data-close]').forEach((btn) => {
       btn.addEventListener('click', () => closeOverlay(btn.getAttribute('data-close')));
     });
-    window.addEventListener('resize', syncSidebarHeight);
-    if (window.ResizeObserver) {
-      const stage = document.querySelector('.video-stage');
-      if (stage) new ResizeObserver(syncSidebarHeight).observe(stage);
-    }
     els.viewerScrollLeft?.addEventListener('click', () => {
       els.viewerStrip.scrollBy({ left: -240, behavior: 'smooth' });
     });
@@ -946,9 +923,6 @@
 
     bootPeer();
     ensureLocalStream().catch((e) => log('Media init error: ' + (e?.message || e)));
-    syncSidebarHeight();
-    setTimeout(syncSidebarHeight, 150);
-    setTimeout(syncSidebarHeight, 600);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
