@@ -70,7 +70,7 @@ body.mode-admin .local-pip { display: none !important; }
 }
 .ctrl-btn {
   width: 36px; height: 36px; flex: 0 0 36px; display: inline-grid; place-items: center;
-  border-radius: 10px; border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 50%; border: 1px solid rgba(255,255,255,0.14);
   background: rgba(255,255,255,0.03); color: var(--text); cursor: pointer;
 }
 .ctrl-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.24); }

@@ -10,7 +10,7 @@
   .app-header { padding: 8px 0; }
   .brand-logo { width: 32px; height: 32px; flex-basis: 32px; border-radius: 10px; }
   .brand-subtitle { font-size: 0.75rem; }
-  .icon-btn { width: 34px; height: 34px; border-radius: 10px; }
+  .icon-btn { width: 34px; height: 34px; border-radius: 50%; }
   .stage-card { padding: 10px 0 4px; }
   .side-card { display: none; }
   .video-stage { aspect-ratio: 9 / 16; max-height: 72vh; }
