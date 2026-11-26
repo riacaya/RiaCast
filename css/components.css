@@ -1,15 +1,15 @@
-.side-section + .side-section { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+.side-section + .side-section { margin-top: 18px; padding-top: 18px; border-top: none; }
 .viewer-list-section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .viewer-list { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 2px; }
 .viewer-list::-webkit-scrollbar { width: 8px; }
 .viewer-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
 .viewer-item {
   display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px;
-  border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; background: rgba(255,255,255,0.03);
+  border: none; border-radius: 12px; background: rgba(255,255,255,0.03);
   color: var(--text); cursor: pointer; text-align: left;
 }
-.viewer-item:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.14); }
-.viewer-item.active { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(255,106,61,0.35); }
+.viewer-item:hover { background: rgba(255,255,255,0.07); border-color: transparent; }
+.viewer-item.active { border-color: transparent; box-shadow: 0 0 0 1px rgba(255,106,61,0.35); }
 .viewer-item-thumb { width: 72px; flex: 0 0 72px; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #151922; }
 .viewer-item-thumb video, .viewer-item-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; background: #151922; }
 .viewer-item-meta { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -27,7 +27,7 @@
 .log-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
 .log-text {
   display: block; width: 100%; flex: 1; min-height: 220px; resize: vertical;
-  border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,0.03);
+  border: none; border-radius: 12px; background: rgba(255,255,255,0.03);
   color: #dce3ec; padding: 12px; font: 12px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
   white-space: pre-wrap; overflow: auto;
 }
@@ -48,7 +48,7 @@
 .overlay.drawer-right:not(.hidden) .overlay-card { transform: translateX(0); }
 .overlay.drawer-right .overlay-body { flex: 1; overflow: auto; }
 .overlay-card {
-  width: min(460px, 100%); background: var(--panel-solid); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow);
+  width: min(460px, 100%); background: var(--panel-solid); border: none; border-radius: 20px; box-shadow: var(--shadow);
 }
 .overlay-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--accent) 10%, var(--panel-solid)); }
 .overlay-head h2 { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: 1.2rem; }
@@ -62,10 +62,10 @@
 .field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; font-size: 0.9rem; }
 .field span { color: #dbe3ee; font-weight: 500; }
 .field input[type="text"], .field input[type="password"], .field-select {
-  width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+  width: 100%; padding: 12px 14px; border-radius: 12px; border: none;
   background: rgba(255,255,255,0.04); color: var(--text); outline: none;
 }
-.field input:focus, .field-select:focus { border-color: rgba(255,106,61,0.6); box-shadow: 0 0 0 3px rgba(255,106,61,0.12); }
+.field input:focus, .field-select:focus { border-color: transparent; box-shadow: 0 0 0 3px rgba(255,106,61,0.12); }
 .field-select option { color: #111; }
 .toggle-row { flex-direction: row; align-items: center; justify-content: space-between; }
 .toggle-row input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
@@ -89,18 +89,18 @@
 
 .settings-shortcuts { display: flex; flex-direction: column; gap: 10px; margin: 0 0 14px; }
 .shortcut-btn {
-  width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line);
+  width: 100%; padding: 10px 14px; border-radius: 12px; border: none;
   background: rgba(255,255,255,0.04); color: var(--text); cursor: pointer; font: inherit; font-size: 0.88rem; text-align: left;
   display: flex; align-items: center; gap: 10px;
 }
 .shortcut-btn svg { width: 18px; height: 18px; flex: 0 0 18px; opacity: 0.9; }
-.shortcut-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.16); }
+.shortcut-btn:hover { background: rgba(255,255,255,0.08); border-color: transparent; }
 .menu-group-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 6px 2px 0; }
 .menu-divider { height: 1px; background: var(--line); margin: 4px 0; }
 .theme-btn .theme-name { flex: 1; }
 .theme-btn .theme-check { margin-left: auto; opacity: 0; }
 .theme-btn.active .theme-check { opacity: 1; color: var(--accent); }
-.theme-btn.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.theme-btn.active { border-color: transparent; background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .mobile-only { display: none; }
 .overlay-card-log { width: min(560px, 100%); }
 .overlay-card-device { width: min(560px, 100%); }
@@ -108,11 +108,11 @@
 .overlay-body-log .log-list { max-height: none; min-height: 200px; }
 .tab-bar { display: flex; gap: 8px; margin-bottom: 14px; }
 .tab-btn {
-  flex: 1; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line);
+  flex: 1; padding: 10px 12px; border-radius: 12px; border: none;
   background: rgba(255,255,255,0.04); color: var(--muted); cursor: pointer; font: inherit; font-size: 0.88rem;
 }
 .tab-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-.tab-btn.active { color: var(--text); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.tab-btn.active { color: var(--text); border-color: transparent; background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .tab-pane { display: none; }
 .tab-pane.active { display: block; }
 .tab-pane[data-tab-pane="log"].active { display: flex; flex-direction: column; min-height: 300px; }

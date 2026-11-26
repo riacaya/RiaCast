@@ -73,7 +73,7 @@ button, input { font: inherit; }
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 10px 14px;
   background: color-mix(in srgb, var(--accent) 10%, var(--panel-solid));
-  border-bottom: 1px solid var(--line);
+  border-bottom: none;
 }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .brand-logo { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; }
@@ -83,9 +83,9 @@ button, input { font: inherit; }
 .header-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .icon-btn {
   width: 36px; height: 36px; display: inline-grid; place-items: center; border-radius: 50%;
-  border: 1px solid var(--line); background: rgba(255,255,255,0.03); color: var(--text);
-  cursor: pointer; transition: transform .15s ease, background .15s ease, border-color .15s ease;
+  border: none; background: rgba(255,255,255,0.03); color: var(--text);
+  cursor: pointer; transition: transform .15s ease, background .15s ease;
 }
-.icon-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.16); }
+.icon-btn:hover { background: rgba(255,255,255,0.08); }
 .icon-btn:active { transform: scale(0.97); }
-.icon-btn.active-admin { color: var(--accent-2); border-color: rgba(255,179,71,0.4); background: rgba(255,179,71,0.08); }
+.icon-btn.active-admin { color: var(--accent-2); background: rgba(255,179,71,0.08); }
