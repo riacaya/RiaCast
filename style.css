@@ -75,19 +75,31 @@ button, input { font: inherit; }
   position: relative; width: 100%; aspect-ratio: 16 / 9; background: #090b10; border-radius: 18px; overflow: hidden;
   border: 1px solid rgba(255,255,255,0.06);
 }
-.remote-video, .local-pip video { width: 100%; height: 100%; object-fit: cover; background: #090b10; }
-.remote-video { display: block; }
-.remote-grid {
-  position: absolute; inset: 0; display: grid; gap: 8px; padding: 8px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); background: #090b10;
+.main-video, .local-pip video { width: 100%; height: 100%; object-fit: cover; background: #090b10; }
+.main-video { display: block; }
+.viewer-panel {
+  position: absolute; left: 12px; right: 12px; bottom: 12px; padding: 10px; border-radius: 16px;
+  background: rgba(12, 14, 20, 0.72); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(10px);
 }
-.remote-grid.hidden { display: none; }
-.remote-tile { position: relative; min-height: 0; border-radius: 14px; overflow: hidden; background: #151922; border: 1px solid rgba(255,255,255,0.06); }
-.remote-tile video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.remote-tile .tile-label {
-  position: absolute; left: 10px; bottom: 10px; padding: 4px 8px; border-radius: 999px; font-size: 0.72rem;
-  background: rgba(0,0,0,0.55); color: #fff; backdrop-filter: blur(4px);
+.viewer-panel.hidden { display: none; }
+.viewer-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.viewer-panel-title { font-size: 0.76rem; font-weight: 700; letter-spacing: 0.04em; color: #dbe3ee; text-transform: uppercase; }
+.viewer-panel-count { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; display: inline-grid; place-items: center; font-size: 0.72rem; background: rgba(255,255,255,0.1); color: var(--muted); }
+.viewer-strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.viewer-strip::-webkit-scrollbar { height: 6px; }
+.viewer-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 999px; }
+.viewer-thumb {
+  position: relative; flex: 0 0 132px; width: 132px; aspect-ratio: 16 / 9; border: 2px solid transparent; border-radius: 12px;
+  overflow: hidden; background: #151922; cursor: pointer; padding: 0;
 }
+.viewer-thumb video, .viewer-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; background: #151922; }
+.viewer-thumb .thumb-label {
+  position: absolute; left: 6px; bottom: 6px; right: 6px; padding: 3px 6px; border-radius: 999px; font-size: 0.66rem;
+  background: rgba(0,0,0,0.55); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left;
+}
+.viewer-thumb.active { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(255,106,61,0.35); }
+.viewer-thumb:hover { border-color: rgba(255,255,255,0.28); }
+.viewer-thumb.active:hover { border-color: var(--accent); }
 .video-overlay {
   position: absolute; inset: 0; display: grid; place-items: center; padding: 24px;
   background: linear-gradient(180deg, rgba(12,14,20,0.2), rgba(12,14,20,0.7));
@@ -181,8 +193,7 @@ button, input { font: inherit; }
   .local-pip { width: min(34%, 150px); right: 10px; bottom: 10px; }
   .overlay-card { border-radius: 16px; }
 }
-.remote-video.hidden { display: none; }
-#remote-video { width: 100%; height: 100%; }
-@media (max-width: 480px) {
-  .remote-grid { grid-template-columns: 1fr; }
+@media (max-width: 640px) {
+  .viewer-thumb { flex-basis: 108px; width: 108px; }
+  .viewer-panel { left: 8px; right: 8px; bottom: 8px; padding: 8px; }
 }

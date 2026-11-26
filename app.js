@@ -17,8 +17,10 @@
     statusPill: $('status-pill'),
     statusDot: $('status-dot'),
     statusText: $('status-text'),
-    remoteVideo: $('remote-video'),
-    remoteGrid: $('remote-grid'),
+    mainVideo: $('main-video'),
+    viewerPanel: $('viewer-panel'),
+    viewerStrip: $('viewer-strip'),
+    viewerPanelCount: $('viewer-panel-count'),
     videoOverlay: $('video-overlay'),
     overlayTitle: $('overlay-title'),
     overlaySub: $('overlay-sub'),
@@ -59,7 +61,8 @@
     adminCall: null,
     adminCallConnected: false,
     adminDetected: false,
-    viewers: new Map(), // peerId -> { conn, call, tile, video, name }
+    viewers: new Map(), // peerId -> { conn, call, thumb, video, name, stream }
+    spotlightId: null, // admin: null=self, else viewer peerId
     detectTimer: null,
     reconnectTimer: null,
     destroyed: false,
@@ -128,13 +131,124 @@
     els.infoMode.textContent = admin ? 'Penyiar (Admin)' : 'Penonton';
     els.targetId.textContent = admin ? 'Menunggu penonton' : ADMIN_PEER_ID;
     els.btnAdmin.classList.toggle('active-admin', admin);
-    els.localLabel.textContent = admin ? 'Penyiar' : 'Kamu';
-    els.remoteVideo.classList.toggle('hidden', admin);
-    els.remoteGrid.classList.toggle('hidden', !admin);
+    els.localLabel.textContent = 'Kamu';
+    els.localPip.classList.toggle('hidden', admin);
+    els.viewerPanel.classList.toggle('hidden', !admin);
     if (els.stageTitle) els.stageTitle.textContent = admin ? 'Menyiapkan siaran' : 'Menunggu siaran';
     if (admin) {
-      setOverlay('Mode Penyiar', 'Menunggu penonton terhubung...', true);
+      state.spotlightId = null;
+      setMainToSelf();
+      if (state.localStream) setOverlay('', '', false);
+      else setOverlay('Mode Penyiar', 'Menyiapkan kamera...', true);
+      renderViewerPanel();
+    } else {
+      state.spotlightId = null;
+      els.mainVideo.srcObject = null;
+      els.mainVideo.muted = false;
     }
+  }
+
+  function setMainToSelf() {
+    if (!els.mainVideo) return;
+    els.mainVideo.muted = true;
+    els.mainVideo.srcObject = state.localStream || null;
+    els.mainVideo.play().catch(() => {});
+  }
+
+  function setMainToStream(stream, muted = false) {
+    if (!els.mainVideo) return;
+    els.mainVideo.muted = muted;
+    if (els.mainVideo.srcObject !== stream) els.mainVideo.srcObject = stream || null;
+    els.mainVideo.play().catch(() => {});
+  }
+
+  function setSpotlight(peerId) {
+    if (!isAdmin()) return;
+    state.spotlightId = peerId || null;
+    if (!state.spotlightId) {
+      setMainToSelf();
+    } else {
+      const v = state.viewers.get(state.spotlightId);
+      if (v?.stream) setMainToStream(v.stream, false);
+      else setMainToSelf();
+    }
+    renderViewerPanel();
+  }
+
+  function renderViewerPanel() {
+    if (!isAdmin()) return;
+    els.viewerPanel.classList.remove('hidden');
+    const count = state.viewers.size;
+    els.viewerPanelCount.textContent = String(count);
+
+    // Ensure self thumb
+    let selfThumb = els.viewerStrip.querySelector('[data-peer="__self__"]');
+    if (!selfThumb) {
+      selfThumb = document.createElement('button');
+      selfThumb.type = 'button';
+      selfThumb.className = 'viewer-thumb';
+      selfThumb.dataset.peer = '__self__';
+      const v = document.createElement('video');
+      v.autoplay = true; v.playsInline = true; v.muted = true;
+      const label = document.createElement('span');
+      label.className = 'thumb-label';
+      label.textContent = 'Kamu (Penyiar)';
+      selfThumb.appendChild(v);
+      selfThumb.appendChild(label);
+      selfThumb.addEventListener('click', () => setSpotlight(null));
+      els.viewerStrip.prepend(selfThumb);
+    }
+    const selfVid = selfThumb.querySelector('video');
+    if (selfVid && selfVid.srcObject !== state.localStream) selfVid.srcObject = state.localStream || null;
+    selfThumb.classList.toggle('active', !state.spotlightId);
+
+    // Remove thumbs for gone viewers
+    [...els.viewerStrip.querySelectorAll('.viewer-thumb[data-peer]')].forEach((el) => {
+      const id = el.dataset.peer;
+      if (id !== '__self__' && !state.viewers.has(id)) el.remove();
+    });
+  }
+
+  function upsertViewerThumb(peerId) {
+    const viewer = state.viewers.get(peerId);
+    if (!viewer || !isAdmin()) return;
+    let thumb = els.viewerStrip.querySelector(`[data-peer="${CSS.escape(peerId)}"]`);
+    if (!thumb) {
+      thumb = document.createElement('button');
+      thumb.type = 'button';
+      thumb.className = 'viewer-thumb';
+      thumb.dataset.peer = peerId;
+      const video = document.createElement('video');
+      video.autoplay = true; video.playsInline = true;
+      const label = document.createElement('span');
+      label.className = 'thumb-label';
+      label.textContent = viewer.name || peerId;
+      thumb.appendChild(video);
+      thumb.appendChild(label);
+      thumb.addEventListener('click', () => setSpotlight(state.spotlightId === peerId ? null : peerId));
+      els.viewerStrip.appendChild(thumb);
+      viewer.thumb = thumb;
+      viewer.video = video;
+    } else {
+      viewer.thumb = thumb;
+      viewer.video = thumb.querySelector('video');
+      const label = thumb.querySelector('.thumb-label');
+      if (label) label.textContent = viewer.name || peerId;
+    }
+    if (viewer.video && viewer.stream && viewer.video.srcObject !== viewer.stream) {
+      viewer.video.srcObject = viewer.stream;
+    }
+    thumb.classList.toggle('active', state.spotlightId === peerId);
+    els.viewerPanelCount.textContent = String(state.viewers.size);
+  }
+
+  function removeViewerThumb(peerId) {
+    const v = state.viewers.get(peerId);
+    if (v?.thumb) { v.thumb.remove(); v.thumb = null; v.video = null; }
+    const el = els.viewerStrip.querySelector(`[data-peer="${CSS.escape(peerId)}"]`);
+    if (el) el.remove();
+    if (state.spotlightId === peerId) setSpotlight(null);
+    renderViewerPanel();
   }
 
   function getViewerId() {
@@ -197,6 +311,8 @@
       els.localPip.classList.remove('hidden');
       els.infoMedia.textContent = `${wantVideo ? 'Kamera' : 'Tanpa kamera'} / ${wantAudio ? 'Mic' : 'Tanpa mic'}`;
       log('Media lokal siap.');
+      if (isAdmin() && !state.spotlightId) setMainToSelf();
+      if (isAdmin()) renderViewerPanel();
       return stream;
     } catch (err) {
       els.infoMedia.textContent = 'Media fallback';
@@ -205,8 +321,13 @@
       state.localStream = fallback;
       els.localVideo.srcObject = fallback;
       els.localPip.classList.remove('hidden');
+      if (isAdmin() && !state.spotlightId) setMainToSelf();
+      if (isAdmin()) renderViewerPanel();
       setOverlay('Izin media terbatas', 'Menggunakan stream fallback. Izinkan kamera/mic untuk pengalaman penuh.', true);
-      setTimeout(() => { if (!state.adminCall && !isAdmin()) setOverlay('Mencari admin', 'Mendeteksi penyiar riacast-99...', true); }, 2500);
+      setTimeout(() => {
+        if (isAdmin()) { if (state.viewers.size === 0) setOverlay('Mode Penyiar', 'Menunggu penonton terhubung...', true); else setOverlay('', '', false); }
+        else if (!state.adminCall) setOverlay('Mencari admin', 'Mendeteksi penyiar riacast-99...', true);
+      }, 2500);
       return state.localStream;
     }
   }
@@ -353,7 +474,8 @@
 
   // ---------------- ADMIN ----------------
   function onAdminPeerOpen() {
-    setOverlay('Mode Penyiar', 'Menunggu penonton terhubung...', true);
+    if (state.localStream) setOverlay('', '', false);
+    else setOverlay('Mode Penyiar', 'Menyiapkan kamera...', true);
     if (els.stageTitle) els.stageTitle.textContent = 'Siaran aktif';
     els.infoAdmin.textContent = 'Kamu adalah admin';
     log('Admin siap menerima penonton.');
@@ -450,10 +572,13 @@
     call.on('stream', (remoteStream) => {
       if (viewer.call !== call) return;
       viewer.callConnected = true;
-      attachViewerStream(peerId, remoteStream);
+      viewer.stream = remoteStream;
+      upsertViewerThumb(peerId);
+      if (state.spotlightId === peerId) setMainToStream(remoteStream, false);
       setStatus(`Terhubung ke ${state.viewers.size} penonton`, 'ok');
-      setOverlay('Siaran aktif', `${state.viewers.size} penonton terhubung`, false);
+      setOverlay('', '', false);
       updateCounts();
+      renderViewerPanel();
     });
 
     call.on('close', () => {
@@ -461,11 +586,13 @@
       if (viewer.call === call) {
         viewer.call = null;
         viewer.callConnected = false;
+        viewer.stream = null;
       }
-      removeViewerTile(peerId);
+      removeViewerThumb(peerId);
       updateCounts();
-      if (state.viewers.size === 0) setOverlay('Mode Penyiar', 'Menunggu penonton terhubung...', true);
-      // If viewer still connected via data, retry call
+      if (state.viewers.size === 0 && isAdmin()) {
+        setOverlay('', '', false);
+      }
       if (viewer.conn && viewer.conn.open && !state.destroyed) {
         setTimeout(() => { if (state.viewers.has(peerId)) autoApproveViewer(peerId); }, 1500);
       }
@@ -493,54 +620,19 @@
     }
   }
 
-  function attachViewerStream(peerId, stream) {
-    const viewer = getOrCreateViewer(peerId);
-    if (!viewer.tile) {
-      const tile = document.createElement('div');
-      tile.className = 'remote-tile';
-      tile.id = `tile-${cssSafe(peerId)}`;
-      const video = document.createElement('video');
-      video.autoplay = true;
-      video.playsInline = true;
-      video.srcObject = stream;
-      const label = document.createElement('span');
-      label.className = 'tile-label';
-      label.textContent = viewer.name || peerId;
-      tile.appendChild(video);
-      tile.appendChild(label);
-      els.remoteGrid.appendChild(tile);
-      viewer.tile = tile;
-      viewer.video = video;
-    } else {
-      viewer.video.srcObject = stream;
-      const label = viewer.tile.querySelector('.tile-label');
-      if (label) label.textContent = viewer.name || peerId;
-    }
-    updateCounts();
-  }
-
-  function removeViewerTile(peerId) {
-    const v = state.viewers.get(peerId);
-    if (v?.tile) { v.tile.remove(); v.tile = null; v.video = null; }
-  }
-
   function removeViewer(peerId, reason) {
     const v = state.viewers.get(peerId);
     if (!v) return;
     try { v.call?.close(); } catch {}
     try { v.conn?.close(); } catch {}
-    removeViewerTile(peerId);
+    removeViewerThumb(peerId);
     state.viewers.delete(peerId);
     log(`Penonton keluar: ${peerId} (${reason || 'unknown'})`);
     updateCounts();
     if (isAdmin() && state.viewers.size === 0) {
       setStatus('Siaran aktif, menunggu penonton', 'ok');
-      setOverlay('Mode Penyiar', 'Menunggu penonton terhubung...', true);
+      setOverlay('', '', false);
     }
-  }
-
-  function cssSafe(value) {
-    return String(value).replace(/[^a-zA-Z0-9_-]/g, '_');
   }
 
   // ---------------- VIEWER ----------------
@@ -670,8 +762,7 @@
     call.on('stream', (remoteStream) => {
       if (state.adminCall !== call) return;
       state.adminCallConnected = true;
-      els.remoteVideo.srcObject = remoteStream;
-      els.remoteVideo.play().catch(() => {});
+      setMainToStream(remoteStream, false);
       setOverlay('', '', false);
       setStatus('Terhubung ke siaran', 'ok');
       if (els.stageTitle) els.stageTitle.textContent = 'Siaran langsung';
@@ -682,7 +773,7 @@
       if (state.adminCall !== call) return;
       state.adminCall = null;
       state.adminCallConnected = false;
-      els.remoteVideo.srcObject = null;
+      if (els.mainVideo) els.mainVideo.srcObject = null;
       setStatus('Siaran terputus', '');
       if (els.stageTitle) els.stageTitle.textContent = 'Menunggu siaran';
       setOverlay('Siaran terputus', 'Menunggu admin kembali online...', true);
