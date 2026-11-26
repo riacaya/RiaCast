@@ -6,6 +6,7 @@
   const ADMIN_FLAG_KEY = 'riacast-admin';
   const SETTINGS_KEY = 'riacast-settings';
   const VIEWER_ID_KEY = 'riacast-viewer-id';
+  const THEME_KEY = 'riacast-theme';
 
   const $ = (id) => document.getElementById(id);
   const qs = (sel, root = document) => root.querySelector(sel);
@@ -89,19 +90,24 @@
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
   }
 
+  function applyTheme(theme) {
+    const t = ['dark', 'senja', 'elegan'].includes(theme) ? theme : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem(THEME_KEY, t);
+    qsa('.theme-btn[data-theme]').forEach((btn) => btn.classList.toggle('active', btn.dataset.theme === t));
+  }
+
   function isAdmin() { return state.mode === 'admin'; }
 
   function log(msg) {
     const time = new Date().toLocaleTimeString('id-ID', { hour12: false });
-    const item = document.createElement('div');
-    item.className = 'log-item';
-    const t = document.createElement('span');
-    t.className = 'log-time';
-    t.textContent = time;
-    item.appendChild(t);
-    item.appendChild(document.createTextNode(msg));
-    els.logList.prepend(item);
-    while (els.logList.children.length > 80) els.logList.lastChild.remove();
+    const line = `[${time}] ${msg}`;
+    if (els.logList) {
+      const lines = els.logList.value ? els.logList.value.split('\n') : [];
+      lines.unshift(line);
+      if (lines.length > 80) lines.length = 80;
+      els.logList.value = lines.join('\n');
+    }
     console.log('[RiaCast]', msg);
   }
 
@@ -900,6 +906,16 @@
   // ---------------- UI ----------------
   function openOverlay(id) { $(id)?.classList.remove('hidden'); }
   function closeOverlay(id) { $(id)?.classList.add('hidden'); }
+  function setDeviceTab(tab) {
+    qsa('.tab-btn[data-tab]').forEach((btn) => {
+      const active = btn.dataset.tab === tab;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    qsa('.tab-pane[data-tab-pane]').forEach((pane) => {
+      pane.classList.toggle('active', pane.dataset.tabPane === tab);
+    });
+  }
 
   function syncSidebarHeight() {
     const stageCard = document.querySelector('.stage-card');
@@ -980,7 +996,7 @@
     els.viewerScrollRight?.addEventListener('click', () => {
       els.viewerStrip.scrollBy({ left: 240, behavior: 'smooth' });
     });
-    ['settings-overlay', 'admin-overlay', 'status-overlay', 'log-overlay'].forEach((id) => {
+    ['settings-overlay', 'admin-overlay', 'device-overlay', 'about-overlay'].forEach((id) => {
       const ov = $(id);
       ov?.addEventListener('click', (e) => { if (e.target === ov) ov.classList.add('hidden'); });
     });
@@ -988,8 +1004,8 @@
       if (e.key === 'Escape') {
         closeOverlay('settings-overlay');
         closeOverlay('admin-overlay');
-        closeOverlay('status-overlay');
-        closeOverlay('log-overlay');
+        closeOverlay('device-overlay');
+        closeOverlay('about-overlay');
       }
     });
     els.btnFullscreen?.addEventListener('click', toggleFullscreen);
@@ -997,21 +1013,26 @@
     document.addEventListener('webkitfullscreenchange', syncFullscreenUI);
 
     els.btnSettings.addEventListener('click', () => {
+      openOverlay('settings-overlay');
+    });
+    $('open-device-panel')?.addEventListener('click', () => {
       els.displayName.value = state.settings.displayName || '';
       els.prefCamera.checked = state.settings.camera !== false;
       els.prefMic.checked = state.settings.mic !== false;
-      openOverlay('settings-overlay');
+      setDeviceTab('device');
+      openOverlay('device-overlay');
     });
-    $('open-status-panel')?.addEventListener('click', () => openOverlay('status-overlay'));
-    $('open-log-panel')?.addEventListener('click', () => openOverlay('log-overlay'));
+    $('open-about-panel')?.addEventListener('click', () => openOverlay('about-overlay'));
+    qsa('.tab-btn[data-tab]').forEach((btn) => btn.addEventListener('click', () => setDeviceTab(btn.dataset.tab)));
+    qsa('.theme-btn[data-theme]').forEach((btn) => btn.addEventListener('click', () => applyTheme(btn.dataset.theme)));
 
     els.saveSettings.addEventListener('click', async () => {
       state.settings.displayName = els.displayName.value.trim().slice(0, 32);
       state.settings.camera = els.prefCamera.checked;
       state.settings.mic = els.prefMic.checked;
       saveSettings();
-      closeOverlay('settings-overlay');
-      log('Pengaturan disimpan.');
+      closeOverlay('device-overlay');
+      log('Pengaturan device disimpan.');
       // Apply media changes: restart stream if needed
       const hadStream = !!state.localStream;
       stopLocalStream();
@@ -1021,15 +1042,20 @@
     });
 
     $('open-admin-panel')?.addEventListener('click', () => {
-      if (isAdmin()) {
-        log('Sudah dalam mode penyiar.');
-        setStatus('Mode penyiar aktif', 'ok');
-        return;
-      }
       els.adminPassword.value = '';
       els.adminError.textContent = '';
+      els.adminError.style.color = '';
       closeOverlay('settings-overlay');
       openOverlay('admin-overlay');
+      if (isAdmin()) {
+        els.adminError.style.color = '#8fd19e';
+        els.adminError.textContent = 'Anda sudah masuk sebagai penyiar (admin).';
+        els.adminPassword.disabled = true;
+        els.adminLogin.disabled = true;
+        return;
+      }
+      els.adminPassword.disabled = false;
+      els.adminLogin.disabled = false;
       setTimeout(() => els.adminPassword.focus(), 50);
     });
 
@@ -1070,6 +1096,7 @@
 
   // ---------------- BOOT ----------------
   async function boot() {
+    applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
     setModeUI();
     bindUI();
     setInterval(updateViewerDurations, 1000);
