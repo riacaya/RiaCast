@@ -50,7 +50,7 @@
 .overlay-card {
   width: min(460px, 100%); background: var(--panel-solid); border: none; border-radius: 20px; box-shadow: var(--shadow);
 }
-.overlay-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--accent) 10%, var(--panel-solid)); }
+.overlay-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--accent) 10%, var(--panel-solid)); }
 .overlay-head h2 { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: 1.2rem; }
 .overlay-title-icon { display: flex; align-items: center; gap: 8px; }
 .overlay-title-icon svg { flex: 0 0 20px; }
