@@ -1112,11 +1112,13 @@ function stopPlaylistMedia() {
   }
   state.playlistPlaying = false;
   if (state.mainSource === 'playlist') state.mainSource = state.screenCaptureStream ? 'screen' : 'camera';
+  if (typeof syncStudioUI === 'function') syncStudioUI();
 }
 
 async function activatePlaylistStream(stream, label) {
   state.playlistStream = stream;
   state.mainSource = 'playlist';
+  if (typeof syncStudioUI === 'function') syncStudioUI();
   if (isAdmin() && (state.camEnabled || state.micEnabled)) {
     state.localStream = stream;
     const mixed = await rebuildAdminMix().catch(() => false);

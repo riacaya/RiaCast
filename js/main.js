@@ -142,6 +142,7 @@ function bindUI() {
   });
   const openDevicePanel = () => {
     if (!isAdmin()) return;
+    if (typeof syncStudioUI === 'function') syncStudioUI();
     openOverlay('device-overlay');
   };
   const openPlaylistPanel = () => {
@@ -192,6 +193,50 @@ function bindUI() {
 
   els.btnScreenShare?.addEventListener('click', async () => {
     if (typeof toggleScreenCapture === 'function') await toggleScreenCapture();
+    if (typeof syncStudioUI === 'function') syncStudioUI();
+  });
+
+  els.studioSource?.addEventListener('change', async () => {
+    if (!isAdmin()) return;
+    const val = els.studioSource.value;
+    if (val === 'camera') {
+      state.mainSource = 'camera';
+      try { await ensureLocalStream(); } catch {}
+    } else if (val === 'screen') {
+      if (state.screenCaptureStream) {
+        state.mainSource = 'screen';
+        try { await ensureLocalStream(); } catch {}
+      } else if (typeof toggleScreenCapture === 'function') {
+        await toggleScreenCapture();
+      }
+    } else if (val === 'playlist') {
+      if (state.playlistStream && state.playlistEl) {
+        state.mainSource = 'playlist';
+        if (state.camEnabled || state.micEnabled) await rebuildAdminMix().catch(() => {});
+        else await activatePlaylistStream(state.playlistStream, 'Playlist').catch(() => {});
+      } else {
+        openOverlay('playlist-overlay');
+      }
+    }
+    if (typeof syncStudioUI === 'function') syncStudioUI();
+  });
+
+  els.studioOpenPlaylist?.addEventListener('click', () => { if (isAdmin()) openOverlay('playlist-overlay'); });
+
+  els.studioCamToggle?.addEventListener('click', async () => {
+    state.camEnabled = !state.camEnabled;
+    if (isAdmin() && (state.mainSource === 'playlist' || state.mainSource === 'screen')) await rebuildAdminMix().catch(() => {});
+    else try { await ensureLocalStream(); } catch {}
+    syncCamUI();
+    log(state.camEnabled ? 'Kamera aktif.' : 'Kamera nonaktif.');
+  });
+
+  els.studioMicToggle?.addEventListener('click', async () => {
+    state.micEnabled = !state.micEnabled;
+    if (isAdmin() && (state.mainSource === 'playlist' || state.mainSource === 'screen')) await rebuildAdminMix().catch(() => {});
+    else try { await ensureLocalStream(); } catch {}
+    syncMicUI();
+    log(state.micEnabled ? 'Mic aktif.' : 'Mic nonaktif.');
   });
   $('save-name')?.addEventListener('click', () => {
     if (!els.displayName) return;

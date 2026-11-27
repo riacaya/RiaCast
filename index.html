@@ -27,7 +27,7 @@
         </div>
       </div>
       <div class="header-actions">
-        <button id="btn-header-device" class="icon-btn admin-only-header hidden" type="button" aria-label="Device" title="Device">
+        <button id="btn-header-device" class="icon-btn admin-only-header hidden" type="button" aria-label="Studio Input" title="Studio Input">
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg>
         </button>
         <button id="btn-header-playlist" class="icon-btn admin-only-header hidden" type="button" aria-label="Playlist" title="Playlist">
@@ -162,15 +162,34 @@
   </div>
 
   <div id="device-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="device-title">
-    <div class="overlay-card">
+    <div class="overlay-card overlay-card-sm">
       <div class="overlay-head">
-        <h2 id="device-title" class="overlay-title-icon"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg><span>Device</span></h2>
+        <h2 id="device-title" class="overlay-title-icon"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg><span>Studio Input</span></h2>
         <button type="button" class="overlay-close" data-close="device-overlay" aria-label="Tutup">&times;</button>
       </div>
       <div class="overlay-body">
-        <p class="field-note">Input rekam layar ke frame video untuk disiarkan ke penonton. Jika playlist/rekam layar tidak aktif, kamera ditampilkan penuh (kecuali kamera dimatikan).</p>
-        <div class="overlay-actions">
+        <label class="field">
+          <span>Sumber Frame</span>
+          <select id="studio-source" class="field-select">
+            <option value="camera">Kamera</option>
+            <option value="screen">Rekam Layar</option>
+            <option value="playlist">Playlist</option>
+          </select>
+        </label>
+        <p class="field-note">Pilih input yang tampil di frame. Kamera dan mic tetap bisa on/off terlepas sumber frame.</p>
+        <div class="overlay-actions overlay-actions-studio">
           <button id="btn-screen-share" type="button" class="btn-primary">Mulai Rekam Layar</button>
+          <button id="studio-open-playlist" type="button" class="btn-ghost">Buka Playlist</button>
+        </div>
+        <div class="studio-device-grid">
+          <div class="studio-device-row">
+            <span>Kamera</span>
+            <button id="studio-cam-toggle" type="button" class="btn-ghost studio-toggle" aria-pressed="true">On</button>
+          </div>
+          <div class="studio-device-row">
+            <span>Mic</span>
+            <button id="studio-mic-toggle" type="button" class="btn-ghost studio-toggle" aria-pressed="true">On</button>
+          </div>
         </div>
       </div>
     </div>

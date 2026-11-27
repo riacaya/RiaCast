@@ -80,12 +80,20 @@
 }
 .form-error { min-height: 1.25em; margin: -4px 0 12px; color: #ff8080; font-size: 0.84rem; }
 .overlay-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.overlay-actions-studio { justify-content: stretch; flex-wrap: wrap; }
+.overlay-actions-studio .btn-primary, .overlay-actions-studio .btn-ghost { flex: 1; min-width: 140px; }
+.studio-device-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.studio-device-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,0.04); }
+.studio-toggle { min-width: 72px; }
+.studio-toggle.active { background: rgba(255,255,255,0.1); color: var(--text); }
 .btn-primary {
   padding: 11px 18px; border: 0; border-radius: 0; background: linear-gradient(135deg, var(--accent), #ff8645);
   color: #fff; font-weight: 700; cursor: pointer;
 }
 .btn-primary:hover { filter: brightness(1.04); }
 .btn-primary:disabled { opacity: 0.6; cursor: wait; }
+.btn-ghost { padding: 11px 14px; border: 1px solid rgba(255,255,255,0.1); border-radius: 0; background: rgba(255,255,255,0.04); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
+.btn-ghost:hover { background: rgba(255,255,255,0.08); }
 
 .settings-shortcuts { display: flex; flex-direction: column; gap: 10px; margin: 0 0 14px; }
 .shortcut-btn {

@@ -354,6 +354,7 @@ function syncShareUI() {
     els.btnSharePause.setAttribute('aria-label', paused ? 'Lanjut Share' : 'Jeda Share');
     els.btnSharePause.setAttribute('title', paused ? 'Lanjut Share' : 'Jeda Share');
   }
+  syncStudioUI();
 }
 
 function updateOnlineTime() {
@@ -396,6 +397,7 @@ function syncCamUI() {
     els.btnCamToggle.setAttribute('aria-label', on ? 'Matikan Kamera' : 'Nyalakan Kamera');
     els.btnCamToggle.setAttribute('title', on ? 'Matikan Kamera' : 'Nyalakan Kamera');
   }
+  syncStudioUI();
 }
 
 function syncMicUI() {
@@ -405,6 +407,26 @@ function syncMicUI() {
   if (els.btnMicToggle) {
     els.btnMicToggle.setAttribute('aria-label', on ? 'Matikan Mic' : 'Nyalakan Mic');
     els.btnMicToggle.setAttribute('title', on ? 'Matikan Mic' : 'Nyalakan Mic');
+  }
+  syncStudioUI();
+}
+
+function syncStudioUI() {
+  if (els.studioSource) els.studioSource.value = state.mainSource || 'camera';
+  if (els.studioCamToggle) {
+    const on = !!state.camEnabled;
+    els.studioCamToggle.textContent = on ? 'On' : 'Off';
+    els.studioCamToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+    els.studioCamToggle.classList.toggle('active', on);
+  }
+  if (els.studioMicToggle) {
+    const on = !!state.micEnabled;
+    els.studioMicToggle.textContent = on ? 'On' : 'Off';
+    els.studioMicToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+    els.studioMicToggle.classList.toggle('active', on);
+  }
+  if (els.btnScreenShare) {
+    els.btnScreenShare.textContent = state.screenCaptureStream ? 'Hentikan Rekam Layar' : 'Mulai Rekam Layar';
   }
 }
 
