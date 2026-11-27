@@ -1,6 +1,10 @@
 function bindUI() {
   qsa('[data-close]').forEach((btn) => {
-    btn.addEventListener('click', () => closeOverlay(btn.getAttribute('data-close')));
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-close');
+      if (id === 'viewers-overlay') moveViewerListBack();
+      closeOverlay(id);
+    });
   });
   window.addEventListener('resize', syncSidebarHeight);
   if (window.ResizeObserver) {
@@ -16,17 +20,30 @@ function bindUI() {
   els.viewerScrollRight?.addEventListener('click', () => {
     els.viewerStrip.scrollBy({ left: 240, behavior: 'smooth' });
   });
-  ['settings-overlay', 'admin-overlay', 'device-overlay', 'about-overlay', 'chat-overlay'].forEach((id) => {
+  const moveViewerListToOverlay = () => {
+    const list = $('viewer-list');
+    const body = $('viewers-overlay-body');
+    if (list && body && list.parentElement !== body) body.appendChild(list);
+  };
+  const moveViewerListBack = () => {
+    const list = $('viewer-list');
+    const section = $('viewer-list-section');
+    if (list && section && list.parentElement !== section) section.appendChild(list);
+  };
+
+  ['settings-overlay', 'admin-overlay', 'device-overlay', 'about-overlay', 'chat-overlay', 'viewers-overlay'].forEach((id) => {
     const ov = $(id);
-    ov?.addEventListener('click', (e) => { if (e.target === ov) ov.classList.add('hidden'); });
+    ov?.addEventListener('click', (e) => { if (e.target === ov) { if (id === 'viewers-overlay') moveViewerListBack(); ov.classList.add('hidden'); } });
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      if (!$('viewers-overlay')?.classList.contains('hidden')) moveViewerListBack();
       closeOverlay('settings-overlay');
       closeOverlay('admin-overlay');
       closeOverlay('device-overlay');
       closeOverlay('about-overlay');
       closeOverlay('chat-overlay');
+      closeOverlay('viewers-overlay');
     }
   });
   els.btnFullscreen?.addEventListener('click', toggleFullscreen);
@@ -120,6 +137,11 @@ function bindUI() {
     closeOverlay('settings-overlay');
     openOverlay('chat-overlay');
     setTimeout(() => els.chatInput?.focus(), 50);
+  });
+  $('open-viewers-panel')?.addEventListener('click', () => {
+    closeOverlay('settings-overlay');
+    moveViewerListToOverlay();
+    openOverlay('viewers-overlay');
   });
   qsa('.tab-btn[data-tab]').forEach((btn) => btn.addEventListener('click', () => setDeviceTab(btn.dataset.tab)));
   qsa('.theme-btn[data-theme]').forEach((btn) => btn.addEventListener('click', () => applyTheme(btn.dataset.theme)));

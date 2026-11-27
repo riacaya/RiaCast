@@ -48,7 +48,7 @@
 .overlay.drawer-right:not(.hidden) .overlay-card { transform: translateX(0); }
 .overlay.drawer-right .overlay-body { flex: 1; overflow: auto; }
 .overlay-card {
-  width: min(460px, 100%); background: var(--panel-solid); border: none; border-radius: 0; box-shadow: var(--shadow);
+  width: min(390px, 100%); background: var(--panel-solid); border: none; border-radius: 0; box-shadow: var(--shadow);
 }
 .overlay-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 10px; min-height: 57px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--accent) 10%, var(--panel-solid)); }
 .overlay-head h2 { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: 1.2rem; }
@@ -102,8 +102,8 @@
 .theme-btn.active .theme-check { opacity: 1; color: var(--accent); }
 .theme-btn.active { border-color: transparent; background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .mobile-only { display: none; }
-.overlay-card-log { width: min(560px, 100%); }
-.overlay-card-device { width: min(560px, 100%); }
+.overlay-card-log { width: min(390px, 100%); }
+.overlay-card-device { width: min(390px, 100%); }
 .overlay-body-log { max-height: min(60vh, 520px); display: flex; flex-direction: column; }
 .overlay-body-log .log-list { max-height: none; min-height: 200px; }
 .tab-bar { display: flex; gap: 8px; margin-bottom: 14px; }
@@ -139,7 +139,7 @@
 .chat-send { width: 36px; height: 36px; flex: 0 0 36px; display: inline-grid; place-items: center; border: none; border-radius: 50%; background: color-mix(in srgb, var(--accent) 22%, rgba(255,255,255,0.04)); color: var(--text); cursor: pointer; }
 .chat-send:hover { background: color-mix(in srgb, var(--accent) 35%, rgba(255,255,255,0.06)); }
 /* Chat panel */
-.overlay-card-chat { width: min(520px, 100%); }
+.overlay-card-chat { width: min(390px, 100%); }
 .chat-overlay-body { display: flex; flex-direction: column; height: min(60vh, 520px); }
 .chat-overlay-body .chat-messages { flex: 1; min-height: 0; }
 /* Chat emoji */

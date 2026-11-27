@@ -109,6 +109,7 @@
           <button id="open-admin-panel" type="button" class="shortcut-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5Zm-3 8V6a3 3 0 1 1 6 0v3H9Z"/></svg><span>Administrator</span></button>
           <button id="open-device-panel" type="button" class="shortcut-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg><span>Device</span></button>
           <button id="open-chat-panel" type="button" class="shortcut-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 2H4a2 2 0 0 0-2 2v14l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"/></svg><span>Chat</span></button>
+          <button id="open-viewers-panel" type="button" class="shortcut-btn mobile-only"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Zm-4 6c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/></svg><span>Penonton</span></button>
           <div class="menu-group-label">Tema</div>
           <button type="button" class="shortcut-btn theme-btn" data-theme="dark"><span class="theme-name">Dark</span><svg class="theme-check" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></button>
           <button type="button" class="shortcut-btn theme-btn" data-theme="senja"><span class="theme-name">Senja</span><svg class="theme-check" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></button>
@@ -228,6 +229,16 @@
           </button>
         </form>
       </div>
+    </div>
+  </div>
+
+  <div id="viewers-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="viewers-title">
+    <div class="overlay-card">
+      <div class="overlay-head">
+        <h2 id="viewers-title" class="overlay-title-icon"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Zm-4 6c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/></svg><span>Penonton</span></h2>
+        <button type="button" class="overlay-close" data-close="viewers-overlay" aria-label="Tutup">&times;</button>
+      </div>
+      <div class="overlay-body" id="viewers-overlay-body"></div>
     </div>
   </div>
 
