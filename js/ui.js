@@ -82,6 +82,13 @@ function setMainToStream(stream, muted = false) {
 
 function setMainToAdminDefault() {
   if (!els.mainVideo) { setOverlay('RiaCast', 'Pilih penonton atau mulai rekam layar untuk menampilkan di panggung.', true); return; }
+  if (state.playlistStream && state.playlistEl) {
+    els.mainVideo.muted = true;
+    if (els.mainVideo.srcObject !== state.playlistStream) els.mainVideo.srcObject = state.playlistStream;
+    els.mainVideo.play().catch(() => {});
+    setOverlay('', '', false);
+    return;
+  }
   if (state.screenSharing && state.localStream) {
     els.mainVideo.muted = true;
     if (els.mainVideo.srcObject !== state.localStream) els.mainVideo.srcObject = state.localStream;
@@ -404,4 +411,50 @@ function syncMicUI() {
     els.btnMicToggle.setAttribute('aria-label', on ? 'Matikan Mic' : 'Nyalakan Mic');
     els.btnMicToggle.setAttribute('title', on ? 'Matikan Mic' : 'Nyalakan Mic');
   }
+}
+
+function renderPlaylist() {
+  const list = $('playlist-list');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!state.playlist.length) {
+    const empty = document.createElement('div');
+    empty.className = 'viewer-empty';
+    empty.textContent = 'Belum ada file. Tambah MP3/video untuk disiarkan.';
+    list.appendChild(empty);
+  } else {
+    state.playlist.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.className = 'playlist-item' + (idx === state.playlistIndex ? ' active' : '');
+      const name = document.createElement('div');
+      name.className = 'playlist-item-name';
+      name.textContent = item.name || `Item ${idx + 1}`;
+      name.title = item.name || '';
+      const meta = document.createElement('div');
+      meta.className = 'playlist-item-meta';
+      meta.textContent = item.type.startsWith('audio') ? 'Audio' : 'Video';
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'playlist-item-remove';
+      rm.textContent = '×';
+      rm.title = 'Hapus';
+      rm.addEventListener('click', (e) => { e.stopPropagation(); removePlaylistItem(idx); });
+      row.addEventListener('click', () => playPlaylistIndex(idx));
+      row.appendChild(name);
+      row.appendChild(meta);
+      row.appendChild(rm);
+      list.appendChild(row);
+    });
+  }
+  const now = $('playlist-now');
+  const cur = state.playlist[state.playlistIndex];
+  if (now) now.textContent = cur ? `Sekarang: ${cur.name}` : 'Belum ada media diputar.';
+  const playIcon = $('playlist-play-icon');
+  const pauseIcon = $('playlist-pause-icon');
+  if (playIcon) playIcon.classList.toggle('hidden', !!state.playlistPlaying);
+  if (pauseIcon) pauseIcon.classList.toggle('hidden', !state.playlistPlaying);
+  const playBtn = $('playlist-play');
+  if (playBtn) { playBtn.setAttribute('aria-label', state.playlistPlaying ? 'Jeda' : 'Putar'); playBtn.setAttribute('title', state.playlistPlaying ? 'Jeda' : 'Putar'); }
+  const loopBtn = $('playlist-loop');
+  if (loopBtn) loopBtn.classList.toggle('active', !!state.playlistLoop);
 }

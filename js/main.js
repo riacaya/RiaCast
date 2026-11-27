@@ -31,7 +31,7 @@ function bindUI() {
     if (list && section && list.parentElement !== section) section.appendChild(list);
   };
 
-  ['settings-overlay', 'admin-overlay', 'device-overlay', 'status-overlay', 'about-overlay', 'chat-overlay', 'viewers-overlay'].forEach((id) => {
+  ['settings-overlay', 'admin-overlay', 'device-overlay', 'status-overlay', 'playlist-overlay', 'about-overlay', 'chat-overlay', 'viewers-overlay'].forEach((id) => {
     const ov = $(id);
     ov?.addEventListener('click', (e) => { if (e.target === ov) { if (id === 'viewers-overlay') moveViewerListBack(); ov.classList.add('hidden'); } });
   });
@@ -42,6 +42,7 @@ function bindUI() {
       closeOverlay('admin-overlay');
       closeOverlay('device-overlay');
       closeOverlay('status-overlay');
+      closeOverlay('playlist-overlay');
       closeOverlay('about-overlay');
       closeOverlay('chat-overlay');
       closeOverlay('viewers-overlay');
@@ -151,6 +152,18 @@ function bindUI() {
     closeOverlay('settings-overlay');
     openOverlay('status-overlay');
   });
+  $('open-playlist-panel')?.addEventListener('click', () => {
+    if (!isAdmin()) return;
+    closeOverlay('settings-overlay');
+    renderPlaylist();
+    openOverlay('playlist-overlay');
+  });
+  $('playlist-file-input')?.addEventListener('change', handlePlaylistFiles);
+  $('playlist-clear')?.addEventListener('click', clearPlaylist);
+  $('playlist-prev')?.addEventListener('click', playPrevPlaylist);
+  $('playlist-play')?.addEventListener('click', togglePlaylistPlayback);
+  $('playlist-next')?.addEventListener('click', playNextPlaylist);
+  $('playlist-loop')?.addEventListener('click', togglePlaylistLoop);
   $('btn-copy-log')?.addEventListener('click', async () => {
     const text = els.logList?.value || '';
     try {

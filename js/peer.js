@@ -51,6 +51,7 @@ async function ensureLocalStream() {
 }
 
 async function _ensureLocalStreamImpl() {
+  if (state.playlistStream && state.playlistEl) return state.playlistStream;
   const wantVideo = (state.settings.videoSource || 'camera') !== 'off';
   const wantAudio = (state.settings.audioSource || 'mic') !== 'off';
   if (state.localStream) {
@@ -201,6 +202,7 @@ async function _ensureLocalStreamImpl() {
       if (isAdmin() && !state.spotlightId && !state.screenSharing) { if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault(); }
       else if (!isAdmin() && !state.adminCall) setOverlay('Mencari admin', 'Mendeteksi penyiar riacast-99...', true);
     }, 3000);
+    await replaceLocalTracks(state.localStream);
     return state.localStream;
   }
 
@@ -219,10 +221,12 @@ async function _ensureLocalStreamImpl() {
     if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault();
   }
   if (isAdmin()) renderViewerPanel();
+  await replaceLocalTracks(state.localStream);
   return state.localStream;
 }
 
 function stopLocalStream() {
+  if (state.playlistEl || state.playlistStream) stopPlaylistMedia();
   if (!state.localStream) return;
   try { state.localStream.__riacastAudioCtx?.close?.(); } catch {}
   state.localStream.getTracks().forEach((t) => { try { t.stop(); } catch {} });
@@ -231,6 +235,28 @@ function stopLocalStream() {
   state.screenPaused = false;
   if (typeof syncShareUI === 'function') syncShareUI();
   if (els.localVideo) els.localVideo.srcObject = null;
+}
+
+async function replaceLocalTracks(newStream) {
+  const stream = newStream || state.localStream;
+  if (!stream) return;
+  const vTrack = stream.getVideoTracks()[0] || null;
+  const aTrack = stream.getAudioTracks()[0] || null;
+  const calls = [];
+  if (isAdmin()) {
+    for (const v of state.viewers.values()) if (v.call) calls.push(v.call);
+  } else if (state.adminCall) {
+    calls.push(state.adminCall);
+  }
+  for (const call of calls) {
+    const pc = call?.peerConnection;
+    if (!pc) continue;
+    const senders = pc.getSenders ? pc.getSenders() : [];
+    for (const s of senders) {
+      if (s.track?.kind === 'video') { try { await s.replaceTrack(vTrack); } catch {} }
+      if (s.track?.kind === 'audio') { try { await s.replaceTrack(aTrack); } catch {} }
+    }
+  }
 }
 
 function destroyPeer() {
@@ -977,6 +1003,184 @@ function syncFullscreenUI() {
   if (!active && screen.orientation && screen.orientation.unlock) {
     try { screen.orientation.unlock(); } catch {}
   }
+}
+
+// ---------------- PLAYLIST ----------------
+function makePlaylistDummyVideoTrack(labelText) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 640; canvas.height = 360;
+  const ctx = canvas.getContext('2d');
+  let running = true;
+  const draw = () => {
+    if (!running) return;
+    ctx.fillStyle = '#141922'; ctx.fillRect(0, 0, 640, 360);
+    ctx.fillStyle = '#ff6a3d'; ctx.font = 'bold 34px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('RiaCast', 320, 150);
+    ctx.fillStyle = '#dce3ec'; ctx.font = '20px sans-serif';
+    ctx.fillText(labelText || 'Audio Playlist', 320, 210);
+    requestAnimationFrame(draw);
+  };
+  draw();
+  const track = canvas.captureStream(10).getVideoTracks()[0];
+  if (track) track.__riacastStopDraw = () => { running = false; };
+  return track;
+}
+
+function stopPlaylistMedia() {
+  if (state.playlistEl) {
+    try { state.playlistEl.pause(); } catch {}
+    try { state.playlistEl.removeAttribute('src'); state.playlistEl.load(); } catch {}
+    state.playlistEl = null;
+  }
+  if (state.playlistStream) {
+    const s = state.playlistStream;
+    if (state.localStream === s) state.localStream = null;
+    try { s.getTracks().forEach((t) => { try { t.__riacastStopDraw?.(); } catch {} try { t.stop(); } catch {} }); } catch {}
+    state.playlistStream = null;
+  }
+  state.playlistPlaying = false;
+}
+
+async function activatePlaylistStream(stream, label) {
+  state.playlistStream = stream;
+  state.localStream = stream;
+  els.localVideo.srcObject = stream;
+  els.localPip.classList.toggle('hidden', isAdmin());
+  setInfo('media', label || 'Playlist');
+  if (isAdmin() && !state.spotlightId) {
+    els.mainVideo.muted = true;
+    if (els.mainVideo.srcObject !== stream) els.mainVideo.srcObject = stream;
+    els.mainVideo.play().catch(() => {});
+    setOverlay('', '', false);
+  }
+  if (isAdmin()) renderViewerPanel();
+  await replaceLocalTracks(stream);
+}
+
+function handlePlaylistFiles(e) {
+  if (!isAdmin()) return;
+  const files = Array.from(e?.target?.files || []);
+  for (const f of files) {
+    const url = URL.createObjectURL(f);
+    state.playlist.push({ id: makeChatId(), name: f.name, type: f.type || '', url, file: f });
+  }
+  if (e?.target) e.target.value = '';
+  if (state.playlistIndex < 0 && state.playlist.length) state.playlistIndex = 0;
+  renderPlaylist();
+  log(`${files.length} file ditambahkan ke playlist.`);
+}
+
+function removePlaylistItem(idx) {
+  if (idx < 0 || idx >= state.playlist.length) return;
+  const [item] = state.playlist.splice(idx, 1);
+  try { if (item?.url) URL.revokeObjectURL(item.url); } catch {}
+  if (state.playlistIndex === idx) {
+    stopPlaylistMedia();
+    state.playlistIndex = -1;
+    if (state.playlist.length) playPlaylistIndex(Math.min(idx, state.playlist.length - 1));
+  } else if (state.playlistIndex > idx) {
+    state.playlistIndex -= 1;
+  }
+  if (!state.playlist.length) {
+    stopPlaylistMedia();
+    state.playlistIndex = -1;
+    if (isAdmin()) ensureLocalStream().catch(() => {});
+  }
+  renderPlaylist();
+}
+
+function clearPlaylist() {
+  stopPlaylistMedia();
+  state.playlist.forEach((it) => { try { URL.revokeObjectURL(it.url); } catch {} });
+  state.playlist = [];
+  state.playlistIndex = -1;
+  renderPlaylist();
+  if (isAdmin()) ensureLocalStream().catch(() => {});
+  log('Playlist dibersihkan.');
+}
+
+function togglePlaylistLoop() {
+  state.playlistLoop = !state.playlistLoop;
+  if (state.playlistEl) state.playlistEl.loop = !!state.playlistLoop && state.playlist.length === 1;
+  renderPlaylist();
+}
+
+async function playPlaylistIndex(idx) {
+  if (!isAdmin()) return;
+  if (idx < 0 || idx >= state.playlist.length) return;
+  const item = state.playlist[idx];
+  stopLocalStream();
+  state.playlistIndex = idx;
+  const isAudio = (item.type || '').startsWith('audio');
+  const el = document.createElement(isAudio ? 'audio' : 'video');
+  el.src = item.url;
+  el.preload = 'auto';
+  el.playsInline = true;
+  el.crossOrigin = 'anonymous';
+  el.controls = false;
+  state.playlistEl = el;
+  el.onended = () => {
+    if (state.playlistLoop) { playPlaylistIndex((idx + 1) % state.playlist.length); return; }
+    if (idx + 1 < state.playlist.length) playPlaylistIndex(idx + 1);
+    else {
+      state.playlistPlaying = false;
+      stopPlaylistMedia();
+      renderPlaylist();
+      log('Playlist selesai.');
+      if (isAdmin()) ensureLocalStream().catch(() => {});
+    }
+  };
+  el.onerror = () => { log('Gagal memutar: ' + (item.name || 'file')); state.playlistPlaying = false; renderPlaylist(); };
+  try {
+    await el.play();
+  } catch (e) {
+    log('Autoplay diblokir, klik Putar lagi: ' + (e?.message || e));
+    state.playlistPlaying = false;
+    renderPlaylist();
+    return;
+  }
+  let stream = null;
+  try { stream = el.captureStream ? el.captureStream() : (el.mozCaptureStream ? el.mozCaptureStream() : null); } catch {}
+  if (!stream) { log('Browser tidak mendukung captureStream untuk file ini.'); state.playlistPlaying = false; renderPlaylist(); return; }
+  // Ensure video track exists for compatibility
+  if (!stream.getVideoTracks().length) {
+    const vt = makePlaylistDummyVideoTrack(item.name);
+    if (vt) stream.addTrack(vt);
+  }
+  if (!stream.getAudioTracks().length) {
+    log('File tidak memiliki track audio yang bisa disiarkan: ' + item.name);
+  }
+  state.playlistPlaying = true;
+  await activatePlaylistStream(stream, (isAudio ? 'Audio: ' : 'Video: ') + item.name);
+  renderPlaylist();
+  log('Memutar playlist: ' + item.name);
+}
+
+function togglePlaylistPlayback() {
+  if (!isAdmin()) return;
+  const el = state.playlistEl;
+  if (!el) { if (state.playlist.length) playPlaylistIndex(state.playlistIndex >= 0 ? state.playlistIndex : 0); return; }
+  if (el.paused) {
+    el.play().then(() => { state.playlistPlaying = true; renderPlaylist(); }).catch((e) => log('Gagal putar: ' + (e?.message || e)));
+  } else {
+    el.pause();
+    state.playlistPlaying = false;
+    renderPlaylist();
+  }
+}
+
+function playNextPlaylist() {
+  if (!state.playlist.length) return;
+  const next = state.playlistIndex + 1;
+  if (next < state.playlist.length) playPlaylistIndex(next);
+  else if (state.playlistLoop) playPlaylistIndex(0);
+}
+
+function playPrevPlaylist() {
+  if (!state.playlist.length) return;
+  const prev = state.playlistIndex - 1;
+  if (prev >= 0) playPlaylistIndex(prev);
+  else if (state.playlistLoop) playPlaylistIndex(state.playlist.length - 1);
 }
 
 

@@ -99,6 +99,12 @@ var state = {
   destroyed: false,
   intervals: [],
   localStreamPromise: null,
+  playlist: [],
+  playlistIndex: -1,
+  playlistLoop: false,
+  playlistPlaying: false,
+  playlistEl: null,
+  playlistStream: null,
 };
 
 function loadSettings() {
