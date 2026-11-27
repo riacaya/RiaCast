@@ -414,6 +414,7 @@ function handleAdminIncomingData(conn) {
     const viewer = getOrCreateViewer(conn.peer);
     viewer.conn = conn;
     viewer.disconnectedAt = null;
+    viewer.lastSeenAt = Date.now();
     bindViewerConn(conn);
     // Auto greet; viewer will request call or we can initiate
     send(conn, { type: 'admin-welcome', adminId: ADMIN_PEER_ID });
@@ -424,7 +425,7 @@ function handleAdminIncomingData(conn) {
 function getOrCreateViewer(peerId) {
   let v = state.viewers.get(peerId);
   if (!v) {
-    v = { peerId, conn: null, call: null, tile: null, thumb: null, video: null, listItem: null, listVideo: null, name: peerId, lastCallAt: 0, callConnected: false, connectedAt: Date.now(), disconnectedAt: null };
+    v = { peerId, conn: null, call: null, tile: null, thumb: null, video: null, listItem: null, listVideo: null, name: peerId, lastCallAt: 0, callConnected: false, connectedAt: Date.now(), disconnectedAt: null, lastSeenAt: Date.now() };
     state.viewers.set(peerId, v);
   }
   return v;
@@ -456,7 +457,11 @@ function bindViewerConn(conn) {
 
 async function handleAdminData(peerId, data) {
   if (!data || typeof data !== 'object') return;
-  const viewer = getOrCreateViewer(peerId);
+  let viewer = state.viewers.get(peerId);
+  if (!viewer && data.type === 'viewer-hello') viewer = getOrCreateViewer(peerId);
+  if (!viewer) return;
+  viewer.lastSeenAt = Date.now();
+  if (data.type === 'pong') return;
   if (data.type === 'viewer-hello') {
     viewer.disconnectedAt = null;
     viewer.name = String(data.name || peerId).slice(0, 32);
@@ -540,6 +545,7 @@ function bindAdminCall(peerId, call) {
     if (state.viewers.get(peerId) !== viewer || viewer.call !== call) return;
     directFailCount = 0;
     viewer.callConnected = true;
+    viewer.lastSeenAt = Date.now();
     viewer.stream = remoteStream;
     upsertViewerThumb(peerId);
     if (state.spotlightId === peerId) setMainToStream(remoteStream, false);
@@ -624,9 +630,24 @@ function cleanupStaleViewers() {
   if (!isAdmin()) return;
   const now = Date.now();
   for (const [peerId, v] of state.viewers) {
-    if (v.disconnectedAt && (now - v.disconnectedAt) > 60000) {
-      removeViewer(peerId, 'stale-timeout');
+    const connOpen = !!(v.conn && v.conn.open);
+    const callOpen = !!(v.call && v.call.open);
+    const pcState = v.conn && v.conn.peerConnection ? v.conn.peerConnection.iceConnectionState : '';
+    const badPc = pcState === 'failed' || pcState === 'closed' || pcState === 'disconnected';
+    if (!connOpen && !callOpen) {
+      removeViewer(peerId, 'connection-closed');
+      continue;
     }
+    if (badPc && !v.callConnected) {
+      removeViewer(peerId, 'ice-' + pcState);
+      continue;
+    }
+    const lastSeen = Number(v.lastSeenAt || v.connectedAt || 0);
+    if (lastSeen && (now - lastSeen) > 25000) {
+      removeViewer(peerId, 'heartbeat-timeout');
+      continue;
+    }
+    if (connOpen) send(v.conn, { type: 'ping', ts: now });
   }
 }
 
@@ -707,6 +728,10 @@ function handleViewerIncomingData(conn) {
 
 async function handleViewerData(data) {
   if (!data || typeof data !== 'object') return;
+  if (data.type === 'ping') {
+    send(state.adminConn, { type: 'pong', ts: Date.now() });
+    return;
+  }
   if (data.type === 'admin-welcome' || data.type === 'admin-ready') {
     state.adminDetected = true;
     setInfo('admin', 'Aktif');
