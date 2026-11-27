@@ -64,9 +64,7 @@ var els = {
   settingsOverlay: $('settings-overlay'),
   adminOverlay: $('admin-overlay'),
   displayName: $('display-name'),
-  prefVideo: $('pref-video'),
-  prefAudio: $('pref-audio'),
-  saveSettings: $('save-settings'),
+  btnScreenShare: $('btn-screen-share'),
   adminPassword: $('admin-password'),
   adminLogin: $('admin-login'),
   adminError: $('admin-error'),
@@ -107,6 +105,8 @@ var state = {
   playlistStream: null,
   camDeviceStream: null,
   micDeviceStream: null,
+  screenCaptureStream: null,
+  mainSource: 'camera',
   mixCanvas: null,
   mixVideoTrack: null,
   mixAudioCtx: null,
@@ -120,17 +120,11 @@ var state = {
 function loadSettings() {
   try {
     const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-    const videoSource = ['camera', 'screen', 'off'].includes(raw.videoSource)
-      ? raw.videoSource : (raw.camera === false ? 'off' : 'camera');
-    const audioSource = ['mic', 'system', 'both', 'off'].includes(raw.audioSource)
-      ? raw.audioSource : (raw.mic === false ? 'off' : 'mic');
     return {
       displayName: typeof raw.displayName === 'string' ? raw.displayName.slice(0, 32) : '',
-      videoSource,
-      audioSource,
     };
   } catch {
-    return { displayName: '', videoSource: 'camera', audioSource: 'mic' };
+    return { displayName: '' };
   }
 }
 

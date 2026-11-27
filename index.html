@@ -168,26 +168,9 @@
         <button type="button" class="overlay-close" data-close="device-overlay" aria-label="Tutup">&times;</button>
       </div>
       <div class="overlay-body">
-        <label class="field">
-          <span>Sumber Video</span>
-          <select id="pref-video" class="field-select">
-            <option value="camera">Kamera</option>
-            <option value="screen">Rekam Layar</option>
-            <option value="off">Mati</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Sumber Audio</span>
-          <select id="pref-audio" class="field-select">
-            <option value="mic">Mic</option>
-            <option value="system">System</option>
-            <option value="both">Mic + System</option>
-            <option value="off">Mati</option>
-          </select>
-        </label>
-        <p class="field-note">Rekam layar/system audio bergantung dukungan browser/izin. Pengaturan disimpan di perangkat ini.</p>
+        <p class="field-note">Input rekam layar ke frame video untuk disiarkan ke penonton. Jika playlist/rekam layar tidak aktif, kamera ditampilkan penuh (kecuali kamera dimatikan).</p>
         <div class="overlay-actions">
-          <button id="save-settings" type="button" class="btn-primary">Simpan</button>
+          <button id="btn-screen-share" type="button" class="btn-primary">Mulai Rekam Layar</button>
         </div>
       </div>
     </div>

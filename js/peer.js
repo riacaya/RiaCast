@@ -52,191 +52,83 @@ async function ensureLocalStream() {
 
 async function _ensureLocalStreamImpl() {
   if (state.playlistStream && state.playlistEl) return state.playlistStream;
-  const wantVideo = (state.settings.videoSource || 'camera') !== 'off';
-  const wantAudio = (state.settings.audioSource || 'mic') !== 'off';
-  if (state.localStream) {
-    const hasVideo = state.localStream.getVideoTracks().length > 0;
-    const hasAudio = state.localStream.getAudioTracks().length > 0;
-    if ((hasVideo || !wantVideo) && (hasAudio || !wantAudio)) return state.localStream;
-    try { state.localStream.getTracks().forEach((t) => { try { t.stop(); } catch {} }); } catch {}
-    state.localStream = null;
-  }
-  if (!navigator.mediaDevices) {
-    setInfo('media', 'Media tidak didukung');
-    log('navigator.mediaDevices tidak tersedia.');
-    const fallback = createFallbackStream();
-    state.localStream = fallback;
-    els.localVideo.srcObject = fallback;
+  if (state.screenCaptureStream && state.mainSource === 'screen') {
+    if (state.camEnabled || state.micEnabled) {
+      const mixed = await rebuildAdminMix().catch(() => false);
+      if (mixed) return state.localStream;
+    }
+    state.localStream = state.screenCaptureStream;
+    els.localVideo.srcObject = state.screenCaptureStream;
     els.localPip.classList.toggle('hidden', isAdmin());
-    return fallback;
+    setInfo('media', 'Rekam Layar');
+    if (isAdmin() && !state.spotlightId) setMainToAdminDefault();
+    if (isAdmin()) renderViewerPanel();
+    await replaceLocalTracks(state.localStream);
+    return state.localStream;
   }
-  const videoSource = state.settings.videoSource || 'camera';
-  const audioSource = state.settings.audioSource || 'mic';
-  const wantMic = audioSource === 'mic' || audioSource === 'both';
-  const wantSystem = audioSource === 'system' || audioSource === 'both';
 
-  if (!wantVideo && !wantMic && !wantSystem) {
-    setInfo('media', 'Mati (pengaturan)');
-    const fallback = createFallbackStream();
-    state.localStream = fallback;
-    els.localVideo.srcObject = fallback;
-    els.localPip.classList.toggle('hidden', isAdmin());
-    return fallback;
+  const wantCam = !!state.camEnabled;
+  const wantMic = !!state.micEnabled;
+  let camStream = state.camDeviceStream;
+  let micStream = state.micDeviceStream;
+
+  if (wantCam) {
+    try {
+      if (!camStream || !camStream.getVideoTracks().some(t => t.readyState === 'live')) {
+        camStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+        state.camDeviceStream = camStream;
+      }
+    } catch (e) { log('Kamera gagal: ' + (e?.name || e?.message || e)); camStream = null; }
+  }
+  if (wantMic) {
+    try {
+      if (!micStream || !micStream.getAudioTracks().some(t => t.readyState === 'live')) {
+        micStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+        state.micDeviceStream = micStream;
+      }
+    } catch (e) { log('Mic gagal: ' + (e?.name || e?.message || e)); micStream = null; }
   }
 
   const out = new MediaStream();
-  let screenStream = null;
-  let camStream = null;
-  let micStream = null;
-  const labels = [];
+  if (wantCam && camStream) camStream.getVideoTracks().forEach(t => out.addTrack(t));
+  if (wantMic && micStream) micStream.getAudioTracks().forEach(t => out.addTrack(t));
 
-  try {
-    if (videoSource === 'screen') {
-      try {
-        screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 } }, audio: wantSystem ? { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 2, sampleRate: 48000 } : false, systemAudio: wantSystem ? 'include' : 'exclude' });
-        screenStream.getVideoTracks().forEach((t) => out.addTrack(t));
-        labels.push('Layar');
-        if (wantSystem) {
-          const sysA = screenStream.getAudioTracks();
-          if (sysA.length) { sysA.forEach((t) => { try { t.contentHint = 'music'; } catch {} out.addTrack(t); }); labels.push('System'); }
-        }
-      } catch (err) {
-        log('Gagal rekam layar: ' + (err?.name || err?.message || err));
-      }
-    } else if (videoSource === 'camera') {
-      try {
-        camStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 24, max: 30 } }, audio: false });
-        camStream.getVideoTracks().forEach((t) => out.addTrack(t));
-        labels.push('Kamera');
-      } catch (err) {
-        log('Gagal kamera: ' + (err?.name || err?.message || err));
-      }
-    }
-
-    if (wantMic) {
-      try {
-        micStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-        micStream.getAudioTracks().forEach((t) => { try { t.contentHint = 'music'; } catch {} out.addTrack(t); });
-        labels.push('Mic');
-      } catch (err) {
-        log('Gagal mic: ' + (err?.name || err?.message || err));
-      }
-    }
-
-    if (wantSystem && !out.getAudioTracks().some((t) => t.label && !micStream?.getAudioTracks().includes(t))) {
-      // Try to get system audio if not already captured from screen share
-      const hasSystem = screenStream && screenStream.getAudioTracks().length > 0;
-      if (!hasSystem) {
-        try {
-          const sys = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 2, sampleRate: 48000 }, systemAudio: 'include' });
-          sys.getAudioTracks().forEach((t) => { try { t.contentHint = 'music'; } catch {} out.addTrack(t); });
-          sys.getVideoTracks().forEach((t) => { if (out.getVideoTracks().length === 0) out.addTrack(t); else t.stop(); });
-          if (sys.getAudioTracks().length) labels.push(out.getVideoTracks().length && videoSource === 'off' ? 'Layar+System' : 'System');
-          else sys.getTracks().forEach((t) => { if (!out.getTracks().includes(t)) t.stop(); });
-        } catch (err) {
-          log('Gagal audio system: ' + (err?.name || err?.message || err));
-        }
-      }
-    }
-  } catch (err) {
-    log('Gagal menyiapkan media: ' + (err?.name || err?.message || err));
-  }
-
-  // Mix multiple audio tracks into one
-  const audioTracks = out.getAudioTracks();
-  if (audioTracks.length > 1) {
-    try {
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (Ctx) {
-        let ac; try { ac = new Ctx({ sampleRate: 48000 }); } catch { ac = new Ctx(); }
-        if (ac.state === 'suspended') await ac.resume().catch(() => {});
-        const dest = ac.createMediaStreamDestination();
-        audioTracks.forEach((t) => {
-          try { ac.createMediaStreamSource(new MediaStream([t])).connect(dest); } catch {}
-        });
-        const mixed = dest.stream.getAudioTracks()[0];
-        if (mixed) {
-          audioTracks.forEach((t) => { out.removeTrack(t); t.stop(); });
-          try { mixed.contentHint = 'music'; } catch {}
-          out.addTrack(mixed);
-          out.__riacastAudioCtx = ac;
-        } else {
-          ac.close().catch(() => {});
-        }
-      }
-    } catch (err) {
-      log('Gagal mix audio: ' + (err?.name || err?.message || err));
-    }
-  }
-
-  // Stop unused helper streams' leftover tracks not in out
-  [screenStream, camStream, micStream].forEach((s) => {
-    if (!s) return;
-    s.getTracks().forEach((t) => { if (!out.getTracks().includes(t)) t.stop(); });
-  });
-
-  const screenVideo = out.getVideoTracks().find((t) => t && screenStream?.getVideoTracks().includes(t));
-  if (screenVideo) {
-    screenVideo.addEventListener('ended', () => {
-      log('Screen share dihentikan.');
-      if (state.localStream === out) { stopLocalStream(); if (isAdmin()) ensureLocalStream().catch(() => {}); }
-    });
-  }
-
-  if (out.getTracks().length === 0) {
-    setInfo('media', 'Media fallback');
-    log('Semua percobaan media gagal, pakai fallback.');
+  if (!out.getTracks().length) {
     const fallback = createFallbackStream();
     state.localStream = fallback;
-    fallback.getVideoTracks().forEach((t) => { t.enabled = !!state.camEnabled; });
-    fallback.getAudioTracks().forEach((t) => { t.enabled = !!state.micEnabled; });
     els.localVideo.srcObject = fallback;
     els.localPip.classList.toggle('hidden', isAdmin());
-    state.screenSharing = false;
-    state.screenPaused = false;
-    if (typeof syncShareUI === 'function') syncShareUI();
-    if (isAdmin() && !state.spotlightId) { if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault(); }
+    setInfo('media', 'Kamera mati');
+    if (isAdmin() && !state.spotlightId) setMainToAdminDefault();
     if (isAdmin()) renderViewerPanel();
-    setOverlay('Izin media terbatas', 'Kamera/mic/layar tidak dapat diakses. Periksa izin browser lalu refresh.', true);
-    setTimeout(() => {
-      if (isAdmin() && !state.spotlightId && !state.screenSharing) { if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault(); }
-      else if (!isAdmin() && !state.adminCall) setOverlay('Mencari admin', 'Mendeteksi penyiar riacast-99...', true);
-    }, 3000);
     await replaceLocalTracks(state.localStream);
     return state.localStream;
   }
 
   state.localStream = out;
-  out.getVideoTracks().forEach((t) => { t.enabled = !!state.camEnabled; });
-  out.getAudioTracks().forEach((t) => { t.enabled = !!state.micEnabled; });
   els.localVideo.srcObject = out;
   els.localPip.classList.toggle('hidden', isAdmin());
-  const label = labels.join(' + ') || 'Media';
-  setInfo('media', label);
-  log('Media lokal siap: ' + label);
-  state.screenSharing = !!(videoSource === 'screen' && screenStream && out.getVideoTracks().some((t) => screenStream.getVideoTracks().includes(t)));
-  state.screenPaused = false;
-  syncShareUI();
-  if (isAdmin() && !state.spotlightId) {
-    if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault();
-  }
+  setInfo('media', [wantCam ? 'Kamera' : null, wantMic ? 'Mic' : null].filter(Boolean).join(' + ') || 'Media');
+  if (isAdmin() && !state.spotlightId) setMainToAdminDefault();
   if (isAdmin()) renderViewerPanel();
-  if (isAdmin() && state.screenSharing && (state.camEnabled || state.micEnabled)) {
-    const mixed = await rebuildAdminMix().catch(() => false);
-    if (mixed) return state.localStream;
-  }
   await replaceLocalTracks(state.localStream);
   return state.localStream;
 }
 
 function stopLocalStream() {
   if (state.playlistEl || state.playlistStream) stopPlaylistMedia();
-  if (!state.localStream) return;
-  try { state.localStream.__riacastAudioCtx?.close?.(); } catch {}
-  state.localStream.getTracks().forEach((t) => { try { t.stop(); } catch {} });
+  try { stopAdminMix(); } catch {}
+  if (state.screenCaptureStream) { try { state.screenCaptureStream.getTracks().forEach(t => t.stop()); } catch {} state.screenCaptureStream = null; }
+  if (state.camDeviceStream) { try { state.camDeviceStream.getTracks().forEach(t => t.stop()); } catch {} state.camDeviceStream = null; }
+  if (state.micDeviceStream) { try { state.micDeviceStream.getTracks().forEach(t => t.stop()); } catch {} state.micDeviceStream = null; }
+  if (state.localStream) {
+    try { state.localStream.__riacastAudioCtx?.close?.(); } catch {}
+    state.localStream.getTracks().forEach((t) => { try { t.stop(); } catch {} });
+  }
   state.localStream = null;
   state.screenSharing = false;
   state.screenPaused = false;
+  state.mainSource = 'camera';
   if (typeof syncShareUI === 'function') syncShareUI();
   if (els.localVideo) els.localVideo.srcObject = null;
 }
@@ -1033,11 +925,10 @@ async function ensureMicDeviceStream() {
 }
 
 function getMainMixVideoSource() {
-  if (state.playlistEl && !state.playlistEl.paused) return state.playlistEl;
-  if (state.screenSharing && state.localStream) {
-    // use a hidden video element for screen stream
+  if (state.mainSource === 'playlist' && state.playlistEl) return state.playlistEl;
+  if (state.mainSource === 'screen' && state.screenCaptureStream) {
     if (!state._mixScreenEl) { state._mixScreenEl = document.createElement('video'); state._mixScreenEl.muted = true; state._mixScreenEl.playsInline = true; }
-    if (state._mixScreenEl.srcObject !== state.localStream) state._mixScreenEl.srcObject = state.localStream;
+    if (state._mixScreenEl.srcObject !== state.screenCaptureStream) state._mixScreenEl.srcObject = state.screenCaptureStream;
     state._mixScreenEl.play().catch(() => {});
     return state._mixScreenEl;
   }
@@ -1061,11 +952,9 @@ function stopAdminMix() {
 
 async function rebuildAdminMix() {
   if (!isAdmin()) return;
-  const mainVideoEl = getMainMixVideoSource();
   const wantCam = !!state.camEnabled;
   const wantMic = !!state.micEnabled;
-  const hasMain = !!mainVideoEl || !!(state.playlistEl);
-  // If no mixing needed, fall back to normal ensureLocalStream behavior
+  const hasMain = (state.mainSource === 'playlist' && !!state.playlistEl) || (state.mainSource === 'screen' && !!state.screenCaptureStream);
   if (!hasMain) return false;
 
   try { if (wantCam) await ensureCamDeviceStream(); } catch (e) { log('Kamera mix gagal: ' + (e?.message || e)); }
@@ -1124,9 +1013,9 @@ async function rebuildAdminMix() {
         const ms = state.mixAudioCtx.createMediaStreamSource(state.micDeviceStream);
         ms.connect(state.mixAudioDest);
       }
-      const mainStream = state.playlistStream || state.localStream;
+      const mainStream = state.mainSource === 'playlist' ? state.playlistStream : (state.mainSource === 'screen' ? state.screenCaptureStream : null);
       if (mainStream) {
-        const ats = mainStream.getAudioTracks();
+        const ats = mainStream.getAudioTracks().filter(t => t.readyState === 'live');
         if (ats.length) {
           const src = state.mixAudioCtx.createMediaStreamSource(new MediaStream([ats[0]]));
           src.connect(state.mixAudioDest);
@@ -1141,7 +1030,7 @@ async function rebuildAdminMix() {
   state.localStream = out;
   els.localVideo.srcObject = out;
   els.localPip.classList.toggle('hidden', true);
-  setInfo('media', 'Mix: ' + (state.playlistEl ? 'Playlist' : (state.screenSharing ? 'Screen' : 'Sumber')) + (state.camEnabled ? '+Cam' : '') + (wantMic ? '+Mic' : ''));
+  setInfo('media', 'Mix: ' + (state.mainSource === 'playlist' ? 'Playlist' : (state.mainSource === 'screen' ? 'Screen' : 'Sumber')) + (state.camEnabled ? '+Cam' : '') + (wantMic ? '+Mic' : ''));
   if (!state.spotlightId) {
     els.mainVideo.muted = true;
     if (els.mainVideo.srcObject !== out) els.mainVideo.srcObject = out;
@@ -1151,6 +1040,41 @@ async function rebuildAdminMix() {
   renderViewerPanel();
   await replaceLocalTracks(out);
   return true;
+}
+
+// ---------------- SCREEN CAPTURE ----------------
+async function toggleScreenCapture() {
+  if (!isAdmin()) return;
+  if (state.screenCaptureStream) { await stopScreenCapture(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 } }, audio: true });
+    state.screenCaptureStream = stream;
+    state.screenSharing = true;
+    state.mainSource = 'screen';
+    const vTrack = stream.getVideoTracks()[0];
+    if (vTrack) vTrack.addEventListener('ended', () => { stopScreenCapture().catch(() => {}); });
+    if (els.btnScreenShare) els.btnScreenShare.textContent = 'Hentikan Rekam Layar';
+    syncShareUI();
+    await ensureLocalStream();
+    log('Rekam layar dimulai.');
+  } catch (e) {
+    log('Gagal rekam layar: ' + (e?.name || e?.message || e));
+  }
+}
+
+async function stopScreenCapture() {
+  if (state.screenCaptureStream) {
+    try { state.screenCaptureStream.getTracks().forEach(t => t.stop()); } catch {}
+  }
+  state.screenCaptureStream = null;
+  state.screenSharing = false;
+  state.screenPaused = false;
+  if (state.mainSource === 'screen') state.mainSource = 'camera';
+  if (els.btnScreenShare) els.btnScreenShare.textContent = 'Mulai Rekam Layar';
+  syncShareUI();
+  stopAdminMix();
+  await ensureLocalStream();
+  log('Rekam layar dihentikan.');
 }
 
 // ---------------- PLAYLIST ----------------
@@ -1187,10 +1111,12 @@ function stopPlaylistMedia() {
     state.playlistStream = null;
   }
   state.playlistPlaying = false;
+  if (state.mainSource === 'playlist') state.mainSource = state.screenCaptureStream ? 'screen' : 'camera';
 }
 
 async function activatePlaylistStream(stream, label) {
   state.playlistStream = stream;
+  state.mainSource = 'playlist';
   if (isAdmin() && (state.camEnabled || state.micEnabled)) {
     state.localStream = stream;
     const mixed = await rebuildAdminMix().catch(() => false);

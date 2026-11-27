@@ -59,8 +59,6 @@ function setModeUI() {
   } else {
     state.spotlightId = null;
     if (els.mainVideo) { els.mainVideo.srcObject = null; els.mainVideo.muted = false; }
-    state.settings.videoSource = 'camera';
-    state.settings.audioSource = 'mic';
   }
   // Admin-only shortcuts
   qsa('.settings-shortcuts .admin-only').forEach((el) => { el.style.display = admin ? '' : 'none'; });
@@ -83,18 +81,14 @@ function setMainToStream(stream, muted = false) {
 
 function setMainToAdminDefault() {
   if (!els.mainVideo) { setOverlay('RiaCast', 'Pilih penonton atau mulai rekam layar untuk menampilkan di panggung.', true); return; }
-  if (state.playlistStream && state.playlistEl) {
+  const out = state.localStream;
+  if (out && (out.getVideoTracks().length > 0 || out.getAudioTracks().length > 0)) {
     els.mainVideo.muted = true;
-    if (els.mainVideo.srcObject !== state.playlistStream) els.mainVideo.srcObject = state.playlistStream;
+    if (els.mainVideo.srcObject !== out) els.mainVideo.srcObject = out;
     els.mainVideo.play().catch(() => {});
-    setOverlay('', '', false);
-    return;
-  }
-  if (state.screenSharing && state.localStream) {
-    els.mainVideo.muted = true;
-    if (els.mainVideo.srcObject !== state.localStream) els.mainVideo.srcObject = state.localStream;
-    els.mainVideo.play().catch(() => {});
-    setOverlay('', '', false);
+    const hasVideo = out.getVideoTracks().some(t => t.enabled);
+    if (hasVideo) setOverlay('', '', false);
+    else setOverlay('Kamera Mati', 'Audio tetap aktif. Nyalakan kamera untuk menampilkan video.', true);
     return;
   }
   els.mainVideo.muted = true;

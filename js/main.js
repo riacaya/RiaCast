@@ -83,25 +83,16 @@ function bindUI() {
     log(state.screenPaused ? 'Screen share dijeda.' : 'Screen share dilanjutkan.');
   });
   els.btnShareStop?.addEventListener('click', async () => {
-    log('Stop share diminta.');
-    state.screenPaused = false;
-    state.screenSharing = false;
-    syncShareUI();
-    if (state.settings.videoSource === 'screen') {
-      state.settings.videoSource = 'camera';
-      if (els.prefVideo) els.prefVideo.value = 'camera';
-      saveSettings();
-    }
-    stopLocalStream();
-    try { await ensureLocalStream(); } catch {}
+    if (typeof stopScreenCapture === 'function') await stopScreenCapture();
+    else { stopLocalStream(); try { await ensureLocalStream(); } catch {} }
   });
 
   els.btnCamToggle?.addEventListener('click', async () => {
     state.camEnabled = !state.camEnabled;
-    if (isAdmin() && (state.playlistEl || state.screenSharing)) {
+    if (isAdmin() && (state.mainSource === 'playlist' || state.mainSource === 'screen')) {
       await rebuildAdminMix().catch(() => {});
-    } else if (state.localStream) {
-      state.localStream.getVideoTracks().forEach((t) => { t.enabled = state.camEnabled; });
+    } else {
+      try { await ensureLocalStream(); } catch {}
     }
     syncCamUI();
     log(state.camEnabled ? 'Kamera aktif.' : 'Kamera nonaktif.');
@@ -109,10 +100,10 @@ function bindUI() {
 
   els.btnMicToggle?.addEventListener('click', async () => {
     state.micEnabled = !state.micEnabled;
-    if (isAdmin() && (state.playlistEl || state.screenSharing)) {
+    if (isAdmin() && (state.mainSource === 'playlist' || state.mainSource === 'screen')) {
       await rebuildAdminMix().catch(() => {});
-    } else if (state.localStream) {
-      state.localStream.getAudioTracks().forEach((t) => { t.enabled = state.micEnabled; });
+    } else {
+      try { await ensureLocalStream(); } catch {}
     }
     syncMicUI();
     log(state.micEnabled ? 'Mic aktif.' : 'Mic nonaktif.');
@@ -151,8 +142,6 @@ function bindUI() {
   });
   const openDevicePanel = () => {
     if (!isAdmin()) return;
-    els.prefVideo.value = state.settings.videoSource || 'camera';
-    els.prefAudio.value = state.settings.audioSource || 'mic';
     openOverlay('device-overlay');
   };
   const openPlaylistPanel = () => {
@@ -201,17 +190,8 @@ function bindUI() {
   });
   qsa('.theme-btn[data-theme]').forEach((btn) => btn.addEventListener('click', () => applyTheme(btn.dataset.theme)));
 
-  els.saveSettings.addEventListener('click', async () => {
-    state.settings.videoSource = els.prefVideo.value || 'camera';
-    state.settings.audioSource = els.prefAudio.value || 'mic';
-    saveSettings();
-    closeOverlay('device-overlay');
-    log('Pengaturan device disimpan.');
-    const hadStream = !!state.localStream;
-    stopLocalStream();
-    if (hadStream || isAdmin()) {
-      try { await ensureLocalStream(); } catch {}
-    }
+  els.btnScreenShare?.addEventListener('click', async () => {
+    if (typeof toggleScreenCapture === 'function') await toggleScreenCapture();
   });
   $('save-name')?.addEventListener('click', () => {
     if (!els.displayName) return;
@@ -290,8 +270,6 @@ async function boot() {
   syncCamUI();
   syncMicUI();
   els.displayName.value = state.settings.displayName || '';
-  els.prefVideo.value = state.settings.videoSource || 'camera';
-  els.prefAudio.value = state.settings.audioSource || 'mic';
 
   if (!window.Peer) {
     setStatus('PeerJS tidak tersedia', 'err');
