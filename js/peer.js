@@ -237,17 +237,45 @@ function send(conn, payload) {
   return false;
 }
 
+const STUN_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:global.stun.twilio.com:3478' },
+  { urls: 'stun:stun.relay.metered.ca:80' },
+];
+const TURN_SERVERS = [
+  { urls: 'turn:global.relay.metered.ca:80', username: '466494188ac3580fb1c6df34', credential: 'f8Qc+SUXdyhuVIgB' },
+  { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: '466494188ac3580fb1c6df34', credential: 'f8Qc+SUXdyhuVIgB' },
+  { urls: 'turn:global.relay.metered.ca:443', username: '466494188ac3580fb1c6df34', credential: 'f8Qc+SUXdyhuVIgB' },
+  { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: '466494188ac3580fb1c6df34', credential: 'f8Qc+SUXdyhuVIgB' },
+];
+let turnEscalated = false;
+let directFailCount = 0;
+const DIRECT_FAIL_LIMIT = 3;
+
 function peerConfig() {
   return {
     debug: 0,
     config: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:global.stun.twilio.com:3478' },
-      ],
+      iceServers: turnEscalated ? [...STUN_SERVERS, ...TURN_SERVERS] : [...STUN_SERVERS],
+      iceTransportPolicy: 'all',
     },
   };
+}
+
+function escalateToTurn(reason) {
+  if (turnEscalated || state.destroyed) return false;
+  directFailCount++;
+  log(`Koneksi direct gagal (${directFailCount}/${DIRECT_FAIL_LIMIT})${reason ? ': ' + reason : ''}`);
+  if (directFailCount < DIRECT_FAIL_LIMIT) return false;
+  turnEscalated = true;
+  log('Eskalasi ke TURN/relay setelah beberapa kegagalan direct.');
+  setStatus('Mencoba koneksi TURN...', '');
+  try { state.peer?.destroy(); } catch {}
+  state.peer = null;
+  state.peerOpen = false;
+  bootPeer();
+  return true;
 }
 
 function createPeer(id) {
@@ -308,6 +336,7 @@ function createPeer(id) {
     if (type === 'network' || type === 'server-error' || type === 'socket-error' || type === 'socket-closed') {
       setInfo('peer', 'Gangguan jaringan');
       setStatus('Gangguan jaringan PeerJS', 'err');
+      if (escalateToTurn(type)) return;
       schedulePeerRestart(1500);
       return;
     }
@@ -440,13 +469,14 @@ async function autoApproveViewer(peerId) {
 
   try {
     const call = state.peer.call(peerId, state.localStream, { metadata: { from: ADMIN_PEER_ID, type: 'broadcast' } });
-    if (!call) { log(`Gagal memanggil ${peerId}`); return; }
+    if (!call) { log(`Gagal memanggil ${peerId}`); escalateToTurn('admin-call-null'); return; }
     viewer.lastCallAt = now;
     viewer.callConnected = false;
     bindAdminCall(peerId, call);
     log(`Memanggil penonton: ${viewer.name}`);
   } catch (e) {
     log(`Gagal call ke ${peerId}: ${e?.message || e}`);
+    escalateToTurn('admin-call-ex');
   }
 }
 
@@ -461,6 +491,7 @@ function bindAdminCall(peerId, call) {
 
   call.on('stream', (remoteStream) => {
     if (viewer.call !== call) return;
+    directFailCount = 0;
     viewer.callConnected = true;
     viewer.stream = remoteStream;
     upsertViewerThumb(peerId);
@@ -473,6 +504,7 @@ function bindAdminCall(peerId, call) {
 
   call.on('close', () => {
     log(`Call tertutup: ${peerId}`);
+    const wasConnected = viewer.callConnected;
     if (viewer.call === call) {
       viewer.call = null;
       viewer.callConnected = false;
@@ -481,8 +513,9 @@ function bindAdminCall(peerId, call) {
     removeViewerThumb(peerId);
     updateCounts();
     if (state.viewers.size === 0 && isAdmin()) {
-      setOverlay('', '', false);
+      if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault();
     }
+    if (!wasConnected) escalateToTurn('admin-call-close');
     if (viewer.conn && viewer.conn.open && !state.destroyed) {
       setTimeout(() => { if (state.viewers.has(peerId)) autoApproveViewer(peerId); }, 1500);
     }
@@ -492,6 +525,7 @@ function bindAdminCall(peerId, call) {
     console.warn('admin call error', peerId, err);
     log(`Call error ${peerId}: ${err?.type || err?.message || err}`);
     if (viewer.call === call) viewer.callConnected = false;
+    if (!viewer.callConnected) escalateToTurn('admin-call-error');
   });
 }
 
@@ -672,6 +706,7 @@ function bindViewerCall(call) {
   tuneMediaSenders(call);
   call.on('stream', (remoteStream) => {
     if (state.adminCall !== call) return;
+    directFailCount = 0;
     state.adminCallConnected = true;
     setMainToStream(remoteStream, false);
     setOverlay('', '', false);
@@ -682,6 +717,7 @@ function bindViewerCall(call) {
   });
   call.on('close', () => {
     if (state.adminCall !== call) return;
+    const wasConnected = state.adminCallConnected;
     state.adminCall = null;
     state.adminCallConnected = false;
     if (els.mainVideo) els.mainVideo.srcObject = null;
@@ -690,6 +726,7 @@ function bindViewerCall(call) {
     setOverlay('Siaran terputus', 'Menunggu admin kembali online...', true);
     log('Call admin tertutup.');
     updateCounts();
+    if (!wasConnected && escalateToTurn('viewer-call-close')) return;
     if (state.adminConn && state.adminConn.open) {
       setTimeout(() => {
         if (state.adminConn && state.adminConn.open && !state.adminCall) {
@@ -701,6 +738,7 @@ function bindViewerCall(call) {
   call.on('error', (err) => {
     log('Call error: ' + (err?.type || err?.message || err));
     if (state.adminCall === call) state.adminCallConnected = false;
+    if (!state.adminCallConnected) escalateToTurn('viewer-call-error');
   });
 }
 
