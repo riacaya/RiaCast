@@ -434,16 +434,16 @@ function markViewerDisconnected(peerId, reason) {
   const v = state.viewers.get(peerId);
   if (!v) return;
   try { v.call?.close(); } catch {}
-  v.call = null;
-  v.callConnected = false;
-  v.stream = null;
-  v.conn = null;
-  if (!v.disconnectedAt) v.disconnectedAt = Date.now();
+  try { v.conn?.close(); } catch {}
   removeViewerThumb(peerId);
+  state.viewers.delete(peerId);
   log(`Penonton terputus: ${peerId} (${reason || 'unknown'})`);
   updateCounts();
   broadcastPresence();
-  if (isAdmin() && [...state.viewers.values()].filter((x) => !x.disconnectedAt).length === 0) { setStatus('Siaran aktif, menunggu penonton', 'ok'); if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault(); }
+  if (isAdmin() && state.viewers.size === 0) {
+    setStatus('Siaran aktif, menunggu penonton', 'ok');
+    if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault();
+  }
 }
 
 function bindViewerConn(conn) {
@@ -527,7 +527,8 @@ async function autoApproveViewer(peerId) {
 }
 
 function bindAdminCall(peerId, call) {
-  const viewer = getOrCreateViewer(peerId);
+  const viewer = state.viewers.get(peerId);
+  if (!viewer) { try { call.close(); } catch {} return; }
   if (viewer.call && viewer.call !== call) {
     try { viewer.call.close(); } catch {}
   }
@@ -536,7 +537,7 @@ function bindAdminCall(peerId, call) {
   tuneMediaSenders(call);
 
   call.on('stream', (remoteStream) => {
-    if (viewer.call !== call) return;
+    if (state.viewers.get(peerId) !== viewer || viewer.call !== call) return;
     directFailCount = 0;
     viewer.callConnected = true;
     viewer.stream = remoteStream;
@@ -547,7 +548,7 @@ function bindAdminCall(peerId, call) {
     updateCounts();
     renderViewerPanel();
     if (typeof detectConnType === 'function') {
-      const logRoute = async (n = 0) => { const type = await detectConnType(viewer).catch(() => null); if (type) { viewer.connType = type; log(`Koneksi ${peerId} tersambung via ${type}`); renderViewerPanel(); } else if (n < 3) setTimeout(() => logRoute(n + 1), 1500); };
+      const logRoute = async (n = 0) => { if (state.viewers.get(peerId) !== viewer) return; const type = await detectConnType(viewer).catch(() => null); if (type) { viewer.connType = type; log(`Koneksi ${peerId} tersambung via ${type}`); renderViewerPanel(); } else if (n < 3) setTimeout(() => logRoute(n + 1), 1500); };
       logRoute();
     }
   });
@@ -560,9 +561,10 @@ function bindAdminCall(peerId, call) {
       viewer.callConnected = false;
       viewer.stream = null;
     }
+    if (state.viewers.get(peerId) !== viewer) return;
     removeViewerThumb(peerId);
     updateCounts();
-    if (isAdmin() && [...state.viewers.values()].filter((x) => !x.disconnectedAt).length === 0) {
+    if (isAdmin() && state.viewers.size === 0) {
       if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault();
     }
     if (!wasConnected) escalateToTurn('admin-call-close');
@@ -575,6 +577,7 @@ function bindAdminCall(peerId, call) {
     console.warn('admin call error', peerId, err);
     log(`Call error ${peerId}: ${err?.type || err?.message || err}`);
     if (viewer.call === call) viewer.callConnected = false;
+    if (state.viewers.get(peerId) !== viewer) return;
     if (!viewer.callConnected) escalateToTurn('admin-call-error');
   });
 }
@@ -582,14 +585,20 @@ function bindAdminCall(peerId, call) {
 async function handleAdminIncomingCall(call) {
   const peerId = call.peer;
   log(`Panggilan masuk dari ${peerId} - auto answer`);
-  getOrCreateViewer(peerId);
+  let viewer = state.viewers.get(peerId);
+  if (!viewer) {
+    log(`Call dari ${peerId} diabaikan: viewer tidak aktif.`);
+    try { call.close(); } catch {}
+    return;
+  }
   try { await ensureLocalStream(); } catch { return; }
   if (!state.localStream || !state.localStream.getTracks().length) { log(`Media lokal belum siap, abaikan call ${peerId}`); return; }
+  if (state.viewers.get(peerId) !== viewer) { try { call.close(); } catch {} return; }
   try {
     call.answer(state.localStream);
     bindAdminCall(peerId, call);
-    const viewer = state.viewers.get(peerId);
-    if (viewer?.conn) send(viewer.conn, { type: 'call-approved' });
+    const v = state.viewers.get(peerId);
+    if (v?.conn) send(v.conn, { type: 'call-approved' });
   } catch (e) {
     log(`Gagal menjawab panggilan ${peerId}: ${e?.message || e}`);
   }
