@@ -115,7 +115,8 @@
       <div class="overlay-body">
         <div class="settings-shortcuts">
           <button id="open-admin-panel" type="button" class="shortcut-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5Zm-3 8V6a3 3 0 1 1 6 0v3H9Z"/></svg><span>Administrator</span></button>
-          <button id="open-device-panel" type="button" class="shortcut-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg><span>Device</span></button>
+          <button id="open-device-panel" type="button" class="shortcut-btn admin-only"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg><span>Device</span></button>
+          <button id="open-status-panel" type="button" class="shortcut-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg><span>Status</span></button>
           <button id="open-chat-panel" type="button" class="shortcut-btn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 2H4a2 2 0 0 0-2 2v14l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"/></svg><span>Chat</span></button>
           <button id="open-viewers-panel" type="button" class="shortcut-btn mobile-only"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Zm-4 6c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/></svg><span>Penonton</span></button>
           <div class="menu-divider"></div>
@@ -156,45 +157,49 @@
   </div>
 
   <div id="device-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="device-title">
-    <div class="overlay-card overlay-card-device">
+    <div class="overlay-card">
       <div class="overlay-head">
         <h2 id="device-title" class="overlay-title-icon"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg><span>Device</span></h2>
         <button type="button" class="overlay-close" data-close="device-overlay" aria-label="Tutup">&times;</button>
       </div>
       <div class="overlay-body">
-        <div class="tab-bar" role="tablist" aria-label="Panel Device">
-          <button type="button" class="tab-btn active" data-tab="device" role="tab" aria-selected="true">Device</button>
-          <button type="button" class="tab-btn" data-tab="status" role="tab" aria-selected="false">Status</button>
-          <button type="button" class="tab-btn" data-tab="log" role="tab" aria-selected="false">Log</button>
+        <label class="field">
+          <span>Nama tampilan</span>
+          <input id="display-name" type="text" maxlength="32" placeholder="Nama Anda">
+        </label>
+        <label class="field">
+          <span>Sumber Video</span>
+          <select id="pref-video" class="field-select">
+            <option value="camera">Kamera</option>
+            <option value="screen">Rekam Layar</option>
+            <option value="off">Mati</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Sumber Audio</span>
+          <select id="pref-audio" class="field-select">
+            <option value="mic">Mic</option>
+            <option value="system">System</option>
+            <option value="both">Mic + System</option>
+            <option value="off">Mati</option>
+          </select>
+        </label>
+        <p class="field-note">Rekam layar/system audio bergantung dukungan browser/izin. Pengaturan disimpan di perangkat ini.</p>
+        <div class="overlay-actions">
+          <button id="save-settings" type="button" class="btn-primary">Simpan</button>
         </div>
-        <div class="tab-pane active" data-tab-pane="device">
-          <label class="field">
-            <span>Nama tampilan</span>
-            <input id="display-name" type="text" maxlength="32" placeholder="Nama Anda">
-          </label>
-          <label class="field">
-            <span>Sumber Video</span>
-            <select id="pref-video" class="field-select">
-              <option value="camera">Kamera</option>
-              <option value="screen">Rekam Layar</option>
-              <option value="off">Mati</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>Sumber Audio</span>
-            <select id="pref-audio" class="field-select">
-              <option value="mic">Mic</option>
-              <option value="system">System</option>
-              <option value="both">Mic + System</option>
-              <option value="off">Mati</option>
-            </select>
-          </label>
-          <p class="field-note">Rekam layar/system audio bergantung dukungan browser/izin. Pengaturan disimpan di perangkat ini.</p>
-          <div class="overlay-actions">
-            <button id="save-settings" type="button" class="btn-primary">Simpan</button>
-          </div>
-        </div>
-        <div class="tab-pane" data-tab-pane="status">
+      </div>
+    </div>
+  </div>
+
+  <div id="status-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="status-title">
+    <div class="overlay-card overlay-card-status">
+      <div class="overlay-head">
+        <h2 id="status-title" class="overlay-title-icon"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg><span>Status</span></h2>
+        <button type="button" class="overlay-close" data-close="status-overlay" aria-label="Tutup">&times;</button>
+      </div>
+      <div class="overlay-body status-overlay-body">
+        <div class="status-section">
           <div class="info-row"><span class="info-k">Mode</span><span class="info-v" data-info="mode">Penonton</span></div>
           <div class="info-row"><span class="info-k">ID Saya</span><span class="info-v" data-info="myId">-</span></div>
           <div class="info-row"><span class="info-k">Target</span><span class="info-v" data-info="targetId">riacast-99</span></div>
@@ -203,7 +208,8 @@
           <div class="info-row"><span class="info-k">Admin</span><span class="info-v" data-info="admin">Memeriksa...</span></div>
           <div class="info-row"><span class="info-k">Media</span><span class="info-v" data-info="media">Belum siap</span></div>
         </div>
-        <div class="tab-pane" data-tab-pane="log">
+        <div class="status-log-section">
+          <h3 class="side-title status-log-title">Log</h3>
           <textarea id="log-list" class="log-list log-text" readonly aria-label="Log"></textarea>
         </div>
       </div>

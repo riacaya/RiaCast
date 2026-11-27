@@ -62,15 +62,8 @@ function setModeUI() {
     state.settings.videoSource = 'camera';
     state.settings.audioSource = 'mic';
   }
-  // Device tab only for admin
-  const devTabBtn = document.querySelector('.tab-btn[data-tab="device"]');
-  if (devTabBtn) {
-    devTabBtn.disabled = !admin;
-    devTabBtn.classList.toggle('hidden', !admin);
-  }
-  const devTabPane = document.querySelector('.tab-pane[data-tab-pane="device"]');
-  if (devTabPane && !admin) devTabPane.classList.remove('active');
-  if (!admin) setDeviceTab('status');
+  // Device menu only for admin
+  qsa('.settings-shortcuts .admin-only').forEach((el) => { el.style.display = admin ? '' : 'none'; });
 }
 
 function setMainToSelf() {

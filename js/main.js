@@ -31,7 +31,7 @@ function bindUI() {
     if (list && section && list.parentElement !== section) section.appendChild(list);
   };
 
-  ['settings-overlay', 'admin-overlay', 'device-overlay', 'about-overlay', 'chat-overlay', 'viewers-overlay'].forEach((id) => {
+  ['settings-overlay', 'admin-overlay', 'device-overlay', 'status-overlay', 'about-overlay', 'chat-overlay', 'viewers-overlay'].forEach((id) => {
     const ov = $(id);
     ov?.addEventListener('click', (e) => { if (e.target === ov) { if (id === 'viewers-overlay') moveViewerListBack(); ov.classList.add('hidden'); } });
   });
@@ -41,6 +41,7 @@ function bindUI() {
       closeOverlay('settings-overlay');
       closeOverlay('admin-overlay');
       closeOverlay('device-overlay');
+      closeOverlay('status-overlay');
       closeOverlay('about-overlay');
       closeOverlay('chat-overlay');
       closeOverlay('viewers-overlay');
@@ -140,11 +141,15 @@ function bindUI() {
     openOverlay('settings-overlay');
   });
   $('open-device-panel')?.addEventListener('click', () => {
+    if (!isAdmin()) return;
     els.displayName.value = state.settings.displayName || '';
     els.prefVideo.value = state.settings.videoSource || 'camera';
     els.prefAudio.value = state.settings.audioSource || 'mic';
-    setDeviceTab(isAdmin() ? 'device' : 'status');
     openOverlay('device-overlay');
+  });
+  $('open-status-panel')?.addEventListener('click', () => {
+    closeOverlay('settings-overlay');
+    openOverlay('status-overlay');
   });
   $('open-about-panel')?.addEventListener('click', () => openOverlay('about-overlay'));
   $('open-chat-panel')?.addEventListener('click', () => {
@@ -157,7 +162,6 @@ function bindUI() {
     moveViewerListToOverlay();
     openOverlay('viewers-overlay');
   });
-  qsa('.tab-btn[data-tab]').forEach((btn) => btn.addEventListener('click', () => setDeviceTab(btn.dataset.tab)));
   qsa('.theme-btn[data-theme]').forEach((btn) => btn.addEventListener('click', () => applyTheme(btn.dataset.theme)));
 
   els.saveSettings.addEventListener('click', async () => {

@@ -916,16 +916,7 @@ function broadcastPresence() {
 // ---------------- UI ----------------
 function openOverlay(id) { $(id)?.classList.remove('hidden'); }
 function closeOverlay(id) { $(id)?.classList.add('hidden'); }
-function setDeviceTab(tab) {
-  qsa('.tab-btn[data-tab]').forEach((btn) => {
-    const active = btn.dataset.tab === tab;
-    btn.classList.toggle('active', active);
-    btn.setAttribute('aria-selected', active ? 'true' : 'false');
-  });
-  qsa('.tab-pane[data-tab-pane]').forEach((pane) => {
-    pane.classList.toggle('active', pane.dataset.tabPane === tab);
-  });
-}
+
 
 var _syncSidebarH = 0;
 function syncSidebarHeight() {
