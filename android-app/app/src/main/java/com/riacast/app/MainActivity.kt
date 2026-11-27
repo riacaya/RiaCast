@@ -15,6 +15,7 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.widget.FrameLayout
 import android.webkit.ConsoleMessage
 import android.webkit.GeolocationPermissions
 import android.webkit.PermissionRequest
@@ -216,6 +217,9 @@ class MainActivity : Activity() {
     }
 
     private lateinit var webView: WebView
+    private var customView: View? = null
+    private var customViewCallback: WebChromeClient.CustomViewCallback? = null
+    private lateinit var fullscreenContainer: FrameLayout
     private var fileChooser: ValueCallback<Array<Uri>>? = null
     private var captureUri: Uri? = null
     private var injectedJs: String? = null
@@ -238,6 +242,7 @@ class MainActivity : Activity() {
             assets.open("injected.js").bufferedReader().use { it.readText() }
         }.getOrNull()
         webView = findViewById(R.id.webview)
+        fullscreenContainer = findViewById(R.id.fullscreen_container)
         webViewRef = WeakReference(webView)
         setupWebView()
         webView.loadUrl(REMOTE_APP_URL)
@@ -441,6 +446,28 @@ class MainActivity : Activity() {
                 if (!granted) requestMissingPermissions()
             }
 
+            override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+                if (customView != null) {
+                    callback?.onCustomViewHidden()
+                    return
+                }
+                customView = view
+                customViewCallback = callback
+                fullscreenContainer.visibility = View.VISIBLE
+                fullscreenContainer.addView(view)
+                webView.visibility = View.GONE
+            }
+
+            override fun onHideCustomView() {
+                val view = customView ?: return
+                fullscreenContainer.removeView(view)
+                fullscreenContainer.visibility = View.GONE
+                webView.visibility = View.VISIBLE
+                customViewCallback?.onCustomViewHidden()
+                customView = null
+                customViewCallback = null
+            }
+
             // Pilih file lampiran (menu File / Memory):
             override fun onShowFileChooser(
                 view: WebView?,
@@ -536,6 +563,10 @@ class MainActivity : Activity() {
 
     @Deprecated("Back klasik Activity.")
     override fun onBackPressed() {
+        if (customView != null) {
+            webView.webChromeClient?.onHideCustomView()
+            return
+        }
         if (webView.canGoBack()) webView.goBack() else super.onBackPressed()
     }
 

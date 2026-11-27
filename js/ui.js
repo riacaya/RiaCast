@@ -22,6 +22,7 @@ function setOverlay(title, sub, show = true) {
   els.overlayTitle.textContent = title;
   els.overlaySub.textContent = sub;
   els.videoOverlay.classList.toggle('hidden', !show);
+  els.videoStage?.classList.toggle('no-video', !!show);
 }
 
 function setInfo(key, value) {
