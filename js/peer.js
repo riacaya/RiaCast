@@ -389,6 +389,7 @@ function handleAdminIncomingData(conn) {
     log(`Data terhubung: ${conn.peer}`);
     const viewer = getOrCreateViewer(conn.peer);
     viewer.conn = conn;
+    viewer.disconnectedAt = null;
     bindViewerConn(conn);
     // Auto greet; viewer will request call or we can initiate
     send(conn, { type: 'admin-welcome', adminId: ADMIN_PEER_ID });
@@ -399,24 +400,41 @@ function handleAdminIncomingData(conn) {
 function getOrCreateViewer(peerId) {
   let v = state.viewers.get(peerId);
   if (!v) {
-    v = { peerId, conn: null, call: null, tile: null, thumb: null, video: null, listItem: null, listVideo: null, name: peerId, lastCallAt: 0, callConnected: false, connectedAt: Date.now() };
+    v = { peerId, conn: null, call: null, tile: null, thumb: null, video: null, listItem: null, listVideo: null, name: peerId, lastCallAt: 0, callConnected: false, connectedAt: Date.now(), disconnectedAt: null };
     state.viewers.set(peerId, v);
   }
   return v;
+}
+
+function markViewerDisconnected(peerId, reason) {
+  const v = state.viewers.get(peerId);
+  if (!v) return;
+  try { v.call?.close(); } catch {}
+  v.call = null;
+  v.callConnected = false;
+  v.stream = null;
+  v.conn = null;
+  if (!v.disconnectedAt) v.disconnectedAt = Date.now();
+  removeViewerThumb(peerId);
+  log(`Penonton terputus: ${peerId} (${reason || 'unknown'})`);
+  updateCounts();
+  broadcastPresence();
+  if (isAdmin() && [...state.viewers.values()].filter((x) => !x.disconnectedAt).length === 0) { setStatus('Siaran aktif, menunggu penonton', 'ok'); if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault(); }
 }
 
 function bindViewerConn(conn) {
   if (conn.__riacastBound) return;
   conn.__riacastBound = true;
   conn.on('data', (data) => handleAdminData(conn.peer, data));
-  conn.on('close', () => removeViewer(conn.peer, 'data-close'));
-  conn.on('error', (err) => { console.warn('viewer conn error', err); removeViewer(conn.peer, 'data-error'); });
+  conn.on('close', () => markViewerDisconnected(conn.peer, 'data-close'));
+  conn.on('error', (err) => { console.warn('viewer conn error', err); markViewerDisconnected(conn.peer, 'data-error'); });
 }
 
 async function handleAdminData(peerId, data) {
   if (!data || typeof data !== 'object') return;
   const viewer = getOrCreateViewer(peerId);
   if (data.type === 'viewer-hello') {
+    viewer.disconnectedAt = null;
     viewer.name = String(data.name || peerId).slice(0, 32);
     log(`Penonton hadir: ${viewer.name} (${peerId})`);
     send(viewer.conn, { type: 'admin-ready', adminId: ADMIN_PEER_ID });
@@ -500,6 +518,10 @@ function bindAdminCall(peerId, call) {
     setOverlay('', '', false);
     updateCounts();
     renderViewerPanel();
+    if (typeof detectConnType === 'function') {
+      const logRoute = async (n = 0) => { const type = await detectConnType(viewer).catch(() => null); if (type) { viewer.connType = type; log(`Koneksi ${peerId} tersambung via ${type}`); renderViewerPanel(); } else if (n < 3) setTimeout(() => logRoute(n + 1), 1500); };
+      logRoute();
+    }
   });
 
   call.on('close', () => {
@@ -512,7 +534,7 @@ function bindAdminCall(peerId, call) {
     }
     removeViewerThumb(peerId);
     updateCounts();
-    if (state.viewers.size === 0 && isAdmin()) {
+    if (isAdmin() && [...state.viewers.values()].filter((x) => !x.disconnectedAt).length === 0) {
       if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault();
     }
     if (!wasConnected) escalateToTurn('admin-call-close');
@@ -554,9 +576,19 @@ function removeViewer(peerId, reason) {
   log(`Penonton keluar: ${peerId} (${reason || 'unknown'})`);
   updateCounts();
   broadcastPresence();
-  if (isAdmin() && state.viewers.size === 0) {
+  if (isAdmin() && [...state.viewers.values()].filter((x) => !x.disconnectedAt).length === 0) {
     setStatus('Siaran aktif, menunggu penonton', 'ok');
-    setOverlay('', '', false);
+    if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault();
+  }
+}
+
+function cleanupStaleViewers() {
+  if (!isAdmin()) return;
+  const now = Date.now();
+  for (const [peerId, v] of state.viewers) {
+    if (v.disconnectedAt && (now - v.disconnectedAt) > 60000) {
+      removeViewer(peerId, 'stale-timeout');
+    }
   }
 }
 
@@ -713,6 +745,10 @@ function bindViewerCall(call) {
     setStatus('Terhubung ke siaran', 'ok');
     if (els.stageTitle) els.stageTitle.textContent = 'Siaran langsung';
     log('Stream admin diterima.');
+    if (typeof detectConnType === 'function') {
+      const logRoute = async (n = 0) => { const type = await detectConnType({ call }).catch(() => null); if (type) log(`Koneksi admin tersambung via ${type}`); else if (n < 3) setTimeout(() => logRoute(n + 1), 1500); };
+      logRoute();
+    }
     updateCounts();
   });
   call.on('close', () => {

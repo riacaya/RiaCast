@@ -30,7 +30,7 @@ function setInfo(key, value) {
 }
 
 function updateCounts() {
-  const count = isAdmin() ? state.viewers.size : (state.adminCall ? 1 : 0);
+  const count = isAdmin() ? [...state.viewers.values()].filter((v) => !v.disconnectedAt).length : (state.adminCall ? 1 : 0);
   setInfo('connCount', String(count));
   setInfo('admin', isAdmin() ? 'Kamu adalah admin' : (state.adminDetected ? 'Aktif' : 'Tidak terdeteksi'));
 }
@@ -237,7 +237,7 @@ function syncViewerSidebar() {
   });
   for (const [peerId, viewer] of state.viewers) ensureViewerListItem(peerId, viewer);
   let empty = els.viewerList.querySelector('.viewer-empty');
-  if (state.viewers.size === 0) {
+  if ([...state.viewers.values()].filter((v) => !v.disconnectedAt).length === 0) {
     if (!empty) { empty = document.createElement('div'); empty.className = 'viewer-empty'; empty.textContent = 'Belum ada penonton.'; els.viewerList.appendChild(empty); }
   } else if (empty) empty.remove();
 }
