@@ -59,7 +59,7 @@ async function ensureLocalStream() {
     const fallback = createFallbackStream();
     state.localStream = fallback;
     els.localVideo.srcObject = fallback;
-    els.localPip.classList.toggle('hidden', isAdmin());
+    els.localPip.classList.toggle('hidden', false);
     return fallback;
   }
 
@@ -170,16 +170,16 @@ async function ensureLocalStream() {
     fallback.getVideoTracks().forEach((t) => { t.enabled = !!state.camEnabled; });
     fallback.getAudioTracks().forEach((t) => { t.enabled = !!state.micEnabled; });
     els.localVideo.srcObject = fallback;
-    els.localPip.classList.toggle('hidden', isAdmin());
+    els.localPip.classList.toggle('hidden', false);
     state.screenSharing = false;
     state.screenPaused = false;
     if (typeof syncShareUI === 'function') syncShareUI();
-    if (isAdmin() && !state.spotlightId) setMainToSelf();
+    if (isAdmin() && !state.spotlightId) { if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault(); }
     if (isAdmin()) renderViewerPanel();
     setOverlay('Izin media terbatas', 'Kamera/mic/layar tidak dapat diakses. Periksa izin browser lalu refresh.', true);
     setTimeout(() => {
-      if (isAdmin()) { setOverlay('', '', false); }
-      else if (!state.adminCall) setOverlay('Mencari admin', 'Mendeteksi penyiar riacast-99...', true);
+      if (isAdmin() && !state.spotlightId && !state.screenSharing) { if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault(); }
+      else if (!isAdmin() && !state.adminCall) setOverlay('Mencari admin', 'Mendeteksi penyiar riacast-99...', true);
     }, 3000);
     return state.localStream;
   }
@@ -188,16 +188,17 @@ async function ensureLocalStream() {
   out.getVideoTracks().forEach((t) => { t.enabled = !!state.camEnabled; });
   out.getAudioTracks().forEach((t) => { t.enabled = !!state.micEnabled; });
   els.localVideo.srcObject = out;
-  els.localPip.classList.toggle('hidden', isAdmin());
+  els.localPip.classList.toggle('hidden', false);
   const label = labels.join(' + ') || 'Media';
   setInfo('media', label);
   log('Media lokal siap: ' + label);
   state.screenSharing = !!(videoSource === 'screen' && screenStream && out.getVideoTracks().some((t) => screenStream.getVideoTracks().includes(t)));
   state.screenPaused = false;
   syncShareUI();
-  if (isAdmin() && !state.spotlightId) setMainToSelf();
+  if (isAdmin() && !state.spotlightId) {
+    if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault();
+  }
   if (isAdmin()) renderViewerPanel();
-  if (isAdmin() && state.viewers.size === 0) setOverlay('', '', false);
   return state.localStream;
 }
 

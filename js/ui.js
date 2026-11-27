@@ -48,14 +48,14 @@ function setModeUI() {
   setInfo('targetId', admin ? 'Menunggu penonton' : ADMIN_PEER_ID);
   els.btnAdmin?.classList.toggle('active-admin', admin);
   els.localLabel.textContent = 'Kamu';
-  els.localPip.classList.toggle('hidden', admin);
+  els.localPip.classList.toggle('hidden', false);
   els.viewerPanel.classList.toggle('hidden', !admin);
-  if (els.stageTitle) els.stageTitle.textContent = admin ? 'Menyiapkan siaran' : 'Menunggu siaran';
+  if (els.stageTitle) els.stageTitle.textContent = admin ? 'Mode penyiar' : 'Menunggu siaran';
   if (admin) {
     state.spotlightId = null;
-    setMainToSelf();
-    if (state.localStream) setOverlay('', '', false);
-    else setOverlay('Mode Penyiar', 'Menyiapkan kamera...', true);
+    els.mainVideo.srcObject = null;
+    els.mainVideo.muted = true;
+    setOverlay('RiaCast', 'Pilih penonton atau mulai rekam layar untuk menampilkan di panggung.', true);
     renderViewerPanel();
   } else {
     state.spotlightId = null;
@@ -89,15 +89,28 @@ function setMainToStream(stream, muted = false) {
   els.mainVideo.play().catch(() => {});
 }
 
+function setMainToAdminDefault() {
+  if (state.screenSharing && state.localStream) {
+    els.mainVideo.muted = true;
+    if (els.mainVideo.srcObject !== state.localStream) els.mainVideo.srcObject = state.localStream;
+    els.mainVideo.play().catch(() => {});
+    setOverlay('', '', false);
+    return;
+  }
+  els.mainVideo.muted = true;
+  els.mainVideo.srcObject = null;
+  setOverlay('RiaCast', 'Pilih penonton atau mulai rekam layar untuk menampilkan di panggung.', true);
+}
+
 function setSpotlight(peerId) {
   if (!isAdmin()) return;
   state.spotlightId = peerId || null;
   if (!state.spotlightId) {
-    setMainToSelf();
+    setMainToAdminDefault();
   } else {
     const v = state.viewers.get(state.spotlightId);
-    if (v?.stream) setMainToStream(v.stream, false);
-    else setMainToSelf();
+    if (v?.stream) { setMainToStream(v.stream, false); setOverlay('', '', false); }
+    else setMainToAdminDefault();
   }
   renderViewerPanel();
 }
