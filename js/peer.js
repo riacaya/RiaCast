@@ -40,7 +40,15 @@ function createFallbackStream() {
 }
 
 async function ensureLocalStream() {
-  if (state.localStream) return state.localStream;
+  const wantVideo = (state.settings.videoSource || 'camera') !== 'off';
+  const wantAudio = (state.settings.audioSource || 'mic') !== 'off';
+  if (state.localStream) {
+    const hasVideo = state.localStream.getVideoTracks().length > 0;
+    const hasAudio = state.localStream.getAudioTracks().length > 0;
+    if ((hasVideo || !wantVideo) && (hasAudio || !wantAudio)) return state.localStream;
+    try { state.localStream.getTracks().forEach((t) => { try { t.stop(); } catch {} }); } catch {}
+    state.localStream = null;
+  }
   const videoSource = state.settings.videoSource || 'camera';
   const audioSource = state.settings.audioSource || 'mic';
   const wantVideo = videoSource !== 'off';
