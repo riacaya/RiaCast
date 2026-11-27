@@ -8,6 +8,7 @@ var THEME_KEY = 'riacast-theme';
 var $ = (id) => document.getElementById(id);
 var qs = (sel, root = document) => root.querySelector(sel);
 var qsa = (sel, root = document) => [...root.querySelectorAll(sel)];
+var cssEsc = (s) => (window.CSS && typeof CSS.escape === 'function') ? CSS.escape(String(s)) : String(s).replace(/[^a-zA-Z0-9_-]/g, (ch) => '\\' + ch);
 
 var els = {
   roleBadge: $('role-badge'),
@@ -96,6 +97,8 @@ var state = {
   camEnabled: true,
   micEnabled: true,
   destroyed: false,
+  intervals: [],
+  localStreamPromise: null,
 };
 
 function loadSettings() {

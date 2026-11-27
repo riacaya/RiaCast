@@ -19,9 +19,9 @@ function setStatus(text, kind = '') {
 }
 
 function setOverlay(title, sub, show = true) {
-  els.overlayTitle.textContent = title;
-  els.overlaySub.textContent = sub;
-  els.videoOverlay.classList.toggle('hidden', !show);
+  if (els.overlayTitle) els.overlayTitle.textContent = title;
+  if (els.overlaySub) els.overlaySub.textContent = sub;
+  if (els.videoOverlay) els.videoOverlay.classList.toggle('hidden', !show);
   els.videoStage?.classList.toggle('no-video', !!show);
 }
 
@@ -48,19 +48,17 @@ function setModeUI() {
   setInfo('targetId', admin ? 'Menunggu penonton' : ADMIN_PEER_ID);
   els.btnAdmin?.classList.toggle('active-admin', admin);
   els.localLabel.textContent = 'Kamu';
-  els.localPip.classList.toggle('hidden', false);
+  els.localPip.classList.toggle('hidden', admin);
   els.viewerPanel.classList.toggle('hidden', !admin);
   if (els.stageTitle) els.stageTitle.textContent = admin ? 'Mode penyiar' : 'Menunggu siaran';
   if (admin) {
     state.spotlightId = null;
-    els.mainVideo.srcObject = null;
-    els.mainVideo.muted = true;
+    if (els.mainVideo) { els.mainVideo.srcObject = null; els.mainVideo.muted = true; }
     setOverlay('RiaCast', 'Pilih penonton atau mulai rekam layar untuk menampilkan di panggung.', true);
     renderViewerPanel();
   } else {
     state.spotlightId = null;
-    els.mainVideo.srcObject = null;
-    els.mainVideo.muted = false;
+    if (els.mainVideo) { els.mainVideo.srcObject = null; els.mainVideo.muted = false; }
     state.settings.videoSource = 'camera';
     state.settings.audioSource = 'mic';
   }
@@ -90,6 +88,7 @@ function setMainToStream(stream, muted = false) {
 }
 
 function setMainToAdminDefault() {
+  if (!els.mainVideo) { setOverlay('RiaCast', 'Pilih penonton atau mulai rekam layar untuk menampilkan di panggung.', true); return; }
   if (state.screenSharing && state.localStream) {
     els.mainVideo.muted = true;
     if (els.mainVideo.srcObject !== state.localStream) els.mainVideo.srcObject = state.localStream;
@@ -115,13 +114,6 @@ function setSpotlight(peerId) {
   renderViewerPanel();
 }
 
-function formatDuration(ms) {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
 async function detectConnType(viewer) {
   try {
     const pc = viewer?.call?.peerConnection;
@@ -143,16 +135,16 @@ function refreshViewerConnTypes() {
   for (const [peerId, v] of state.viewers) {
     detectConnType(v).then((type) => {
       if (type) v.connType = type;
-      const timeEl = els.viewerList?.querySelector(`[data-peer="${CSS.escape(peerId)}"] .viewer-item-time`);
+      const timeEl = els.viewerList?.querySelector(`[data-peer="${cssEsc(peerId)}"] .viewer-item-time`);
       if (timeEl) timeEl.textContent = `terhubung via ${v.connType || '...'}`;
     }).catch(() => {});
   }
 }
 
-function updateViewerDurations() {
+function updateViewerStatusUI() {
   if (!isAdmin()) return;
   for (const [peerId, v] of state.viewers) {
-    const timeEl = els.viewerList?.querySelector(`[data-peer="${CSS.escape(peerId)}"] .viewer-item-time`);
+    const timeEl = els.viewerList?.querySelector(`[data-peer="${cssEsc(peerId)}"] .viewer-item-time`);
     if (timeEl) timeEl.textContent = `terhubung via ${v.connType || '...'}`;
   }
   const selfTime = els.viewerList?.querySelector('[data-peer="__self__"] .viewer-item-time');
@@ -161,7 +153,7 @@ function updateViewerDurations() {
 
 function ensureViewerListItem(peerId, viewer) {
   if (!els.viewerList) return null;
-  let item = els.viewerList.querySelector(`[data-peer="${CSS.escape(peerId)}"]`);
+  let item = els.viewerList.querySelector(`[data-peer="${cssEsc(peerId)}"]`);
   const isSelf = peerId === '__self__';
   if (!item) {
     item = document.createElement('button');
@@ -244,6 +236,7 @@ function syncViewerSidebar() {
 
 function renderViewerPanel() {
   if (!isAdmin()) { syncViewerSidebar(); return; }
+  if (!els.viewerPanel || !els.viewerStrip) return;
   els.viewerPanel.classList.remove('hidden');
 
   // Ensure self thumb
@@ -277,8 +270,8 @@ function renderViewerPanel() {
 
 function upsertViewerThumb(peerId) {
   const viewer = state.viewers.get(peerId);
-  if (!viewer || !isAdmin()) return;
-  let thumb = els.viewerStrip.querySelector(`[data-peer="${CSS.escape(peerId)}"]`);
+  if (!viewer || !isAdmin() || !els.viewerStrip) return;
+  let thumb = els.viewerStrip.querySelector(`[data-peer="${cssEsc(peerId)}"]`);
   if (!thumb) {
     thumb = document.createElement('button');
     thumb.type = 'button';
@@ -313,9 +306,9 @@ function removeViewerThumb(peerId) {
   const v = state.viewers.get(peerId);
   if (v?.thumb) { v.thumb.remove(); v.thumb = null; v.video = null; }
   if (v?.listItem) { v.listItem.remove(); v.listItem = null; v.listVideo = null; }
-  const el = els.viewerStrip.querySelector(`[data-peer="${CSS.escape(peerId)}"]`);
+  const el = els.viewerStrip.querySelector(`[data-peer="${cssEsc(peerId)}"]`);
   if (el) el.remove();
-  const listEl = els.viewerList?.querySelector(`[data-peer="${CSS.escape(peerId)}"]`);
+  const listEl = els.viewerList?.querySelector(`[data-peer="${cssEsc(peerId)}"]`);
   if (listEl) listEl.remove();
   if (state.spotlightId === peerId) setSpotlight(null);
   renderViewerPanel();
@@ -369,10 +362,6 @@ function syncShareUI() {
 function updateOnlineTime() {
   if (els.timeDisplay) els.timeDisplay.textContent = formatClock(Date.now() - (state.onlineSince || Date.now()));
 }
-function escapeChatText(s) {
-  return String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
 function appendChatMessage(msg) {
   if (!els.chatMessages) return;
   const wrap = document.createElement('div');

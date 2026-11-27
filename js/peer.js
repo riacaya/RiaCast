@@ -40,6 +40,17 @@ function createFallbackStream() {
 }
 
 async function ensureLocalStream() {
+  if (state.localStreamPromise) {
+    try { await state.localStreamPromise; } catch {}
+  }
+  if (state.localStreamPromise) return state.localStreamPromise;
+  const p = _ensureLocalStreamImpl();
+  state.localStreamPromise = p;
+  try { return await p; }
+  finally { if (state.localStreamPromise === p) state.localStreamPromise = null; }
+}
+
+async function _ensureLocalStreamImpl() {
   const wantVideo = (state.settings.videoSource || 'camera') !== 'off';
   const wantAudio = (state.settings.audioSource || 'mic') !== 'off';
   if (state.localStream) {
@@ -48,6 +59,15 @@ async function ensureLocalStream() {
     if ((hasVideo || !wantVideo) && (hasAudio || !wantAudio)) return state.localStream;
     try { state.localStream.getTracks().forEach((t) => { try { t.stop(); } catch {} }); } catch {}
     state.localStream = null;
+  }
+  if (!navigator.mediaDevices) {
+    setInfo('media', 'Media tidak didukung');
+    log('navigator.mediaDevices tidak tersedia.');
+    const fallback = createFallbackStream();
+    state.localStream = fallback;
+    els.localVideo.srcObject = fallback;
+    els.localPip.classList.toggle('hidden', isAdmin());
+    return fallback;
   }
   const videoSource = state.settings.videoSource || 'camera';
   const audioSource = state.settings.audioSource || 'mic';
@@ -59,7 +79,7 @@ async function ensureLocalStream() {
     const fallback = createFallbackStream();
     state.localStream = fallback;
     els.localVideo.srcObject = fallback;
-    els.localPip.classList.toggle('hidden', false);
+    els.localPip.classList.toggle('hidden', isAdmin());
     return fallback;
   }
 
@@ -170,7 +190,7 @@ async function ensureLocalStream() {
     fallback.getVideoTracks().forEach((t) => { t.enabled = !!state.camEnabled; });
     fallback.getAudioTracks().forEach((t) => { t.enabled = !!state.micEnabled; });
     els.localVideo.srcObject = fallback;
-    els.localPip.classList.toggle('hidden', false);
+    els.localPip.classList.toggle('hidden', isAdmin());
     state.screenSharing = false;
     state.screenPaused = false;
     if (typeof syncShareUI === 'function') syncShareUI();
@@ -188,7 +208,7 @@ async function ensureLocalStream() {
   out.getVideoTracks().forEach((t) => { t.enabled = !!state.camEnabled; });
   out.getAudioTracks().forEach((t) => { t.enabled = !!state.micEnabled; });
   els.localVideo.srcObject = out;
-  els.localPip.classList.toggle('hidden', false);
+  els.localPip.classList.toggle('hidden', isAdmin());
   const label = labels.join(' + ') || 'Media';
   setInfo('media', label);
   log('Media lokal siap: ' + label);
@@ -217,6 +237,10 @@ function destroyPeer() {
   state.destroyed = true;
   clearTimeout(state.detectTimer);
   clearTimeout(state.reconnectTimer);
+  if (Array.isArray(state.intervals)) {
+    state.intervals.forEach((id) => clearInterval(id));
+    state.intervals = [];
+  }
   try { state.adminConn?.close(); } catch {}
   try { state.adminCall?.close(); } catch {}
   for (const v of state.viewers.values()) {
@@ -471,6 +495,10 @@ async function autoApproveViewer(peerId) {
     send(viewer.conn, { type: 'admin-error', message: 'Admin belum memberi izin kamera/mic.' });
     return;
   }
+  if (!state.localStream || !state.localStream.getTracks().length) {
+    send(viewer.conn, { type: 'admin-error', message: 'Media lokal belum siap.' });
+    return;
+  }
   send(viewer.conn, { type: 'call-approved' });
 
   if (viewer.callConnected && viewer.call && viewer.call.open) return;
@@ -556,6 +584,7 @@ async function handleAdminIncomingCall(call) {
   log(`Panggilan masuk dari ${peerId} - auto answer`);
   getOrCreateViewer(peerId);
   try { await ensureLocalStream(); } catch { return; }
+  if (!state.localStream || !state.localStream.getTracks().length) { log(`Media lokal belum siap, abaikan call ${peerId}`); return; }
   try {
     call.answer(state.localStream);
     bindAdminCall(peerId, call);
@@ -720,6 +749,7 @@ async function handleViewerIncomingCall(call) {
   }
   log('Panggilan masuk dari admin - auto answer');
   try { await ensureLocalStream(); } catch { return; }
+  if (!state.localStream || !state.localStream.getTracks().length) { log('Media lokal belum siap untuk menjawab call admin.'); return; }
   try {
     call.answer(state.localStream);
   } catch (e) {
@@ -837,10 +867,12 @@ function broadcastChat(msg, excludePeerId) {
 
 function broadcastPresence() {
   if (!isAdmin()) return;
-  const viewers = [...state.viewers.values()].map((v) => ({ id: v.peerId, name: (v.name || v.peerId).slice(0, 32) }));
+  const viewers = [...state.viewers.values()]
+    .filter((v) => !v.disconnectedAt)
+    .map((v) => ({ id: v.peerId, name: (v.name || v.peerId).slice(0, 32) }));
   const payload = { type: 'presence', viewers, count: viewers.length };
   for (const v of state.viewers.values()) {
-    if (v.conn) send(v.conn, payload);
+    if (!v.disconnectedAt && v.conn) send(v.conn, payload);
   }
   state.viewerPresence = viewers;
 }

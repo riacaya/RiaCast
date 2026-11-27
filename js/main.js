@@ -233,10 +233,10 @@ async function boot() {
   applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
   setModeUI();
   bindUI();
-  setInterval(updateViewerDurations, 1000);
-  setInterval(refreshViewerConnTypes, 5000);
-  setInterval(updateOnlineTime, 1000);
-  setInterval(cleanupStaleViewers, 10000);
+  state.intervals.push(setInterval(updateViewerStatusUI, 1000));
+  state.intervals.push(setInterval(refreshViewerConnTypes, 5000));
+  state.intervals.push(setInterval(updateOnlineTime, 1000));
+  state.intervals.push(setInterval(cleanupStaleViewers, 10000));
   updateOnlineTime();
   syncPlayUI();
   syncVolumeUI();
