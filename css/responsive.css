@@ -40,3 +40,7 @@
   .vol-range { width: 72px; max-width: 22vw; }
   .time-display { font-size: 0.72rem; }
 }
+@media (min-width: 981px) {
+  .app-shell { padding-bottom: 0; }
+  .app-footer { padding-top: 6px; margin-top: 0; }
+}
