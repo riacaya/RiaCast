@@ -24,6 +24,7 @@
   #viewers-overlay .overlay-card { width: 100%; max-width: 100%; }
   .overlay.drawer-right .overlay-card { width: min(320px, 86vw); max-width: 86vw; height: 100%; }
   .overlay:not(.drawer-right) .overlay-body { flex: 1; overflow: auto; max-height: none; }
+  .overlay:not(.drawer-right) .status-overlay-body { overflow: hidden; }
   .overlay:not(.drawer-right) .chat-overlay-body { overflow: hidden; height: auto; min-height: 0; }
   .overlay:not(.drawer-right) .overlay-card-log { width: 100%; }
   .mobile-only { display: inline-flex; }
