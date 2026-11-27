@@ -65,7 +65,7 @@ async function ensureLocalStream() {
   try {
     if (videoSource === 'screen') {
       try {
-        screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 } }, audio: wantSystem ? { echoCancellation: false, noiseSuppression: false, autoGainControl: false } : false, systemAudio: wantSystem ? 'include' : 'exclude' });
+        screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 } }, audio: wantSystem ? { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 2, sampleRate: 48000 } : false, systemAudio: wantSystem ? 'include' : 'exclude' });
         screenStream.getVideoTracks().forEach((t) => out.addTrack(t));
         labels.push('Layar');
         if (wantSystem) {
@@ -87,8 +87,8 @@ async function ensureLocalStream() {
 
     if (wantMic) {
       try {
-        micStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
-        micStream.getAudioTracks().forEach((t) => { try { t.contentHint = 'speech'; } catch {} out.addTrack(t); });
+        micStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 2, sampleRate: 48000, sampleSize: 16 } });
+        micStream.getAudioTracks().forEach((t) => { try { t.contentHint = 'music'; } catch {} out.addTrack(t); });
         labels.push('Mic');
       } catch (err) {
         log('Gagal mic: ' + (err?.name || err?.message || err));
@@ -100,7 +100,7 @@ async function ensureLocalStream() {
       const hasSystem = screenStream && screenStream.getAudioTracks().length > 0;
       if (!hasSystem) {
         try {
-          const sys = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }, systemAudio: 'include' });
+          const sys = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 2, sampleRate: 48000 }, systemAudio: 'include' });
           sys.getAudioTracks().forEach((t) => { try { t.contentHint = 'music'; } catch {} out.addTrack(t); });
           sys.getVideoTracks().forEach((t) => { if (out.getVideoTracks().length === 0) out.addTrack(t); else t.stop(); });
           if (sys.getAudioTracks().length) labels.push(out.getVideoTracks().length && videoSource === 'off' ? 'Layar+System' : 'System');
@@ -445,6 +445,7 @@ function bindAdminCall(peerId, call) {
   }
   viewer.call = call;
   viewer.callConnected = false;
+  tuneAudioSender(call);
 
   call.on('stream', (remoteStream) => {
     if (viewer.call !== call) return;
@@ -656,6 +657,7 @@ function bindViewerCall(call) {
   }
   state.adminCall = call;
   state.adminCallConnected = false;
+  tuneAudioSender(call);
   call.on('stream', (remoteStream) => {
     if (state.adminCall !== call) return;
     state.adminCallConnected = true;
@@ -696,6 +698,24 @@ function getDisplayName() {
 
 // ---------------- CHAT ----------------
 function makeChatId() { return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8); }
+
+async function tuneAudioSender(call) {
+  try {
+    const pc = call?.peerConnection;
+    if (!pc) return;
+    const senders = pc.getSenders ? pc.getSenders() : [];
+    for (const s of senders) {
+      if (!s.track || s.track.kind !== 'audio') continue;
+      const params = s.getParameters ? s.getParameters() : null;
+      if (!params) continue;
+      params.encodings = params.encodings && params.encodings.length ? params.encodings : [{}];
+      params.encodings.forEach((e) => { e.maxBitrate = 128000; });
+      // Opus-specific hints (browser may ignore unsupported keys)
+      params.encodings.forEach((e) => { e.networkPriority = 'high'; e.priority = 'high'; });
+      await s.setParameters(params).catch(() => {});
+    }
+  } catch {}
+}
 
 function sendChatFromUI() {
   const text = (els.chatInput?.value || '').trim();
