@@ -175,7 +175,7 @@ function ensureViewerListItem(peerId, viewer) {
   const video = item.querySelector('video');
   const nameEl = item.querySelector('.viewer-item-name');
   const timeEl = item.querySelector('.viewer-item-time');
-  const name = isSelf ? 'Kamu (Penyiar)' : (viewer?.name || peerId);
+  const name = isSelf ? ((state.settings.displayName || 'Kamu') + ' (Penyiar)') : (viewer?.name || peerId);
   if (nameEl) nameEl.textContent = name;
   if (timeEl) timeEl.textContent = isSelf ? 'Penyiar' : `terhubung via ${viewer?.connType || '...'}`;
   if (isSelf) {
@@ -243,7 +243,7 @@ function renderViewerPanel() {
     v.autoplay = true; v.playsInline = true; v.muted = true;
     const label = document.createElement('span');
     label.className = 'thumb-label';
-    label.textContent = 'Kamu (Penyiar)';
+    label.textContent = (state.settings.displayName || 'Kamu') + ' (Penyiar)';
     selfThumb.appendChild(v);
     selfThumb.appendChild(label);
     selfThumb.addEventListener('click', () => setSpotlight(null));
@@ -251,6 +251,8 @@ function renderViewerPanel() {
   }
   const selfVid = selfThumb.querySelector('video');
   if (selfVid && selfVid.srcObject !== state.localStream) selfVid.srcObject = state.localStream || null;
+  const selfLabel = selfThumb.querySelector('.thumb-label');
+  if (selfLabel) selfLabel.textContent = (state.settings.displayName || 'Kamu') + ' (Penyiar)';
   selfThumb.classList.toggle('active', !state.spotlightId);
 
   // Remove thumbs for gone viewers

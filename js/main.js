@@ -181,6 +181,7 @@ function bindUI() {
     state.settings.displayName = els.displayName.value.trim().slice(0, 32);
     saveSettings();
     log('Nama tampilan disimpan.');
+    if (typeof renderViewerPanel === 'function') renderViewerPanel();
   });
 
   $('open-admin-panel')?.addEventListener('click', () => {
