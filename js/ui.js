@@ -363,7 +363,7 @@ function appendChatMessage(msg) {
   meta.className = 'chat-msg-meta';
   const name = document.createElement('span');
   name.className = 'chat-msg-name';
-  name.textContent = msg.self ? 'Kamu' : (msg.name || msg.peerId || 'User');
+  name.textContent = msg.self ? (state.settings.displayName || 'Kamu') : (msg.name || msg.peerId || 'User');
   const time = document.createElement('span');
   time.className = 'chat-msg-time';
   const d = new Date(msg.ts || Date.now());
