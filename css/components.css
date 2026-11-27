@@ -161,7 +161,10 @@ body.mode-admin .settings-shortcuts .admin-only { display: flex; }
 .overlay-card-status { width: min(390px, 100%); }
 .status-overlay-body { display: flex; flex-direction: column; gap: 14px; max-height: min(72vh, 640px); }
 .status-name-section { flex: 0 0 auto; }
-.status-name-section .field { margin-bottom: 10px; }
+.status-name-section .field { margin-bottom: 0; }
+.name-save-row { display: flex; gap: 8px; align-items: stretch; }
+.name-save-row input { flex: 1 1 auto; min-width: 0; }
+.icon-save-btn { width: 42px; min-width: 42px; padding: 0; display: inline-grid; place-items: center; }
 .status-section { flex: 0 0 auto; }
 .status-log-section { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .status-log-title { margin: 0 0 8px; }
