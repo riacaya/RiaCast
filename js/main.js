@@ -94,6 +94,20 @@ function bindUI() {
     try { await ensureLocalStream(); } catch {}
   });
 
+  els.btnCamToggle?.addEventListener('click', () => {
+    state.camEnabled = !state.camEnabled;
+    if (state.localStream) state.localStream.getVideoTracks().forEach((t) => { t.enabled = state.camEnabled; });
+    syncCamUI();
+    log(state.camEnabled ? 'Kamera aktif.' : 'Kamera nonaktif.');
+  });
+
+  els.btnMicToggle?.addEventListener('click', () => {
+    state.micEnabled = !state.micEnabled;
+    if (state.localStream) state.localStream.getAudioTracks().forEach((t) => { t.enabled = state.micEnabled; });
+    syncMicUI();
+    log(state.micEnabled ? 'Mic aktif.' : 'Mic nonaktif.');
+  });
+
   els.chatForm?.addEventListener('submit', (e) => {
     e.preventDefault();
     sendChatFromUI();
@@ -129,7 +143,7 @@ function bindUI() {
     els.displayName.value = state.settings.displayName || '';
     els.prefVideo.value = state.settings.videoSource || 'camera';
     els.prefAudio.value = state.settings.audioSource || 'mic';
-    setDeviceTab('device');
+    setDeviceTab(isAdmin() ? 'device' : 'status');
     openOverlay('device-overlay');
   });
   $('open-about-panel')?.addEventListener('click', () => openOverlay('about-overlay'));
@@ -226,6 +240,8 @@ async function boot() {
   syncPlayUI();
   syncVolumeUI();
   syncShareUI();
+  syncCamUI();
+  syncMicUI();
   els.displayName.value = state.settings.displayName || '';
   els.prefVideo.value = state.settings.videoSource || 'camera';
   els.prefAudio.value = state.settings.audioSource || 'mic';

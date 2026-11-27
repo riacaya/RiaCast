@@ -87,7 +87,7 @@ async function ensureLocalStream() {
 
     if (wantMic) {
       try {
-        micStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 2, sampleRate: 48000, sampleSize: 16 } });
+        micStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
         micStream.getAudioTracks().forEach((t) => { try { t.contentHint = 'music'; } catch {} out.addTrack(t); });
         labels.push('Mic');
       } catch (err) {
@@ -160,6 +160,8 @@ async function ensureLocalStream() {
     log('Semua percobaan media gagal, pakai fallback.');
     const fallback = createFallbackStream();
     state.localStream = fallback;
+    fallback.getVideoTracks().forEach((t) => { t.enabled = !!state.camEnabled; });
+    fallback.getAudioTracks().forEach((t) => { t.enabled = !!state.micEnabled; });
     els.localVideo.srcObject = fallback;
     els.localPip.classList.toggle('hidden', isAdmin());
     state.screenSharing = false;
@@ -176,6 +178,8 @@ async function ensureLocalStream() {
   }
 
   state.localStream = out;
+  out.getVideoTracks().forEach((t) => { t.enabled = !!state.camEnabled; });
+  out.getAudioTracks().forEach((t) => { t.enabled = !!state.micEnabled; });
   els.localVideo.srcObject = out;
   els.localPip.classList.toggle('hidden', isAdmin());
   const label = labels.join(' + ') || 'Media';

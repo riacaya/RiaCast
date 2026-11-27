@@ -61,7 +61,18 @@ function setModeUI() {
     state.spotlightId = null;
     els.mainVideo.srcObject = null;
     els.mainVideo.muted = false;
+    state.settings.videoSource = 'camera';
+    state.settings.audioSource = 'mic';
   }
+  // Device tab only for admin
+  const devTabBtn = document.querySelector('.tab-btn[data-tab="device"]');
+  if (devTabBtn) {
+    devTabBtn.disabled = !admin;
+    devTabBtn.classList.toggle('hidden', !admin);
+  }
+  const devTabPane = document.querySelector('.tab-pane[data-tab-pane="device"]');
+  if (devTabPane && !admin) devTabPane.classList.remove('active');
+  if (!admin) setDeviceTab('status');
 }
 
 function setMainToSelf() {
@@ -377,4 +388,23 @@ function addChatMessage(msg) {
   state.chatMessages.push(msg);
   if (state.chatMessages.length > 200) state.chatMessages.shift();
   appendChatMessage(msg);
+}
+function syncCamUI() {
+  const on = !!state.camEnabled;
+  els.iconCamOn?.classList.toggle('hidden', !on);
+  els.iconCamOff?.classList.toggle('hidden', on);
+  if (els.btnCamToggle) {
+    els.btnCamToggle.setAttribute('aria-label', on ? 'Matikan Kamera' : 'Nyalakan Kamera');
+    els.btnCamToggle.setAttribute('title', on ? 'Matikan Kamera' : 'Nyalakan Kamera');
+  }
+}
+
+function syncMicUI() {
+  const on = !!state.micEnabled;
+  els.iconMicOn?.classList.toggle('hidden', !on);
+  els.iconMicOff?.classList.toggle('hidden', on);
+  if (els.btnMicToggle) {
+    els.btnMicToggle.setAttribute('aria-label', on ? 'Matikan Mic' : 'Nyalakan Mic');
+    els.btnMicToggle.setAttribute('title', on ? 'Matikan Mic' : 'Nyalakan Mic');
+  }
 }

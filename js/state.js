@@ -42,8 +42,14 @@ var els = {
   btnMute: $('btn-mute'),
   btnSharePause: $('btn-share-pause'),
   btnShareStop: $('btn-share-stop'),
+  btnCamToggle: $('btn-cam-toggle'),
+  btnMicToggle: $('btn-mic-toggle'),
   iconSharePause: $('icon-share-pause'),
   iconShareResume: $('icon-share-resume'),
+  iconCamOn: $('icon-cam-on'),
+  iconCamOff: $('icon-cam-off'),
+  iconMicOn: $('icon-mic-on'),
+  iconMicOff: $('icon-mic-off'),
   volRange: $('vol-range'),
   timeDisplay: $('time-display'),
   iconPlay: $('icon-play'),
@@ -87,6 +93,8 @@ var state = {
   screenPaused: false,
   chatMessages: [],
   viewerPresence: [],
+  camEnabled: true,
+  micEnabled: true,
   destroyed: false,
 };
 
