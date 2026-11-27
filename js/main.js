@@ -141,22 +141,23 @@ function bindUI() {
   els.btnSettings.addEventListener('click', () => {
     openOverlay('settings-overlay');
   });
-  $('open-device-panel')?.addEventListener('click', () => {
+  const openDevicePanel = () => {
     if (!isAdmin()) return;
     els.prefVideo.value = state.settings.videoSource || 'camera';
     els.prefAudio.value = state.settings.audioSource || 'mic';
     openOverlay('device-overlay');
-  });
+  };
+  const openPlaylistPanel = () => {
+    if (!isAdmin()) return;
+    renderPlaylist();
+    openOverlay('playlist-overlay');
+  };
+  $('btn-header-device')?.addEventListener('click', openDevicePanel);
+  $('btn-header-playlist')?.addEventListener('click', openPlaylistPanel);
   $('open-status-panel')?.addEventListener('click', () => {
     if (els.displayName) els.displayName.value = state.settings.displayName || '';
     closeOverlay('settings-overlay');
     openOverlay('status-overlay');
-  });
-  $('open-playlist-panel')?.addEventListener('click', () => {
-    if (!isAdmin()) return;
-    closeOverlay('settings-overlay');
-    renderPlaylist();
-    openOverlay('playlist-overlay');
   });
   $('playlist-file-input')?.addEventListener('change', handlePlaylistFiles);
   $('playlist-clear')?.addEventListener('click', clearPlaylist);

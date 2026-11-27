@@ -157,6 +157,7 @@
 /* Admin-only menu */
 .settings-shortcuts .admin-only { display: none; }
 body.mode-admin .settings-shortcuts .admin-only { display: flex; }
+.admin-only-header.hidden { display: none !important; }
 /* Status overlay */
 .overlay-card-status { width: min(390px, 100%); height: min(86vh, 760px); max-height: calc(100vh - 40px); display: flex; flex-direction: column; }
 .status-overlay-body { display: flex; flex-direction: column; gap: 12px; flex: 1 1 0; min-height: 0; overflow: hidden; }

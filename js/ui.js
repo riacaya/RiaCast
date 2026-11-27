@@ -62,8 +62,9 @@ function setModeUI() {
     state.settings.videoSource = 'camera';
     state.settings.audioSource = 'mic';
   }
-  // Device menu only for admin
+  // Admin-only shortcuts
   qsa('.settings-shortcuts .admin-only').forEach((el) => { el.style.display = admin ? '' : 'none'; });
+  qsa('.admin-only-header').forEach((el) => { el.classList.toggle('hidden', !admin); });
 }
 
 function setMainToSelf() {
