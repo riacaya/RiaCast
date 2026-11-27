@@ -441,6 +441,7 @@ function markViewerDisconnected(peerId, reason) {
   log(`Penonton terputus: ${peerId} (${reason || 'unknown'})`);
   updateCounts();
   broadcastPresence();
+  renderViewerPanel();
   if (isAdmin() && state.viewers.size === 0) {
     setStatus('Siaran aktif, menunggu penonton', 'ok');
     if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault();
@@ -620,7 +621,8 @@ function removeViewer(peerId, reason) {
   log(`Penonton keluar: ${peerId} (${reason || 'unknown'})`);
   updateCounts();
   broadcastPresence();
-  if (isAdmin() && [...state.viewers.values()].filter((x) => !x.disconnectedAt).length === 0) {
+  renderViewerPanel();
+  if (isAdmin() && state.viewers.size === 0) {
     setStatus('Siaran aktif, menunggu penonton', 'ok');
     if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault();
   }
