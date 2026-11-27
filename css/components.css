@@ -164,11 +164,11 @@ body.mode-admin .settings-shortcuts .admin-only { display: flex; }
 .status-name-section .field { margin-bottom: 0; }
 .name-save-row { display: flex; gap: 8px; align-items: stretch; flex-wrap: nowrap; }
 .name-save-row input { flex: 1 1 0; width: auto; min-width: 0; }
-.icon-save-btn { width: 42px; min-width: 42px; flex: 0 0 42px; padding: 0; display: inline-grid; place-items: center; }
+
 .status-section { flex: 0 0 auto; }
 .status-log-section { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
-.status-log-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; flex: 0 0 auto; }
-.status-log-title { margin: 0; }
-.icon-btn-small { width: 28px; height: 28px; display: inline-grid; place-items: center; border: none; border-radius: 50%; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--text); cursor: pointer; padding: 0; }
-.icon-btn-small:hover { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+.status-log-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; flex: 0 0 auto; flex-wrap: nowrap; }
+.status-log-title { margin: 0; line-height: 1; }
+.icon-btn-small { width: 32px; height: 32px; flex: 0 0 32px; display: inline-grid; place-items: center; border: none; border-radius: 50%; background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--text); cursor: pointer; padding: 0; }
+.icon-btn-small:hover { background: color-mix(in srgb, var(--accent) 30%, transparent); }
 .status-log-section .log-text { flex: 1 1 0; min-height: 72px; height: auto; resize: none; overflow: auto; }
