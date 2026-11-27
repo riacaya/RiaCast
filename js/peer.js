@@ -84,7 +84,7 @@ async function ensureLocalStream() {
       }
     } else if (videoSource === 'camera') {
       try {
-        camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        camStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 24, max: 30 } }, audio: false });
         camStream.getVideoTracks().forEach((t) => out.addTrack(t));
         labels.push('Kamera');
       } catch (err) {
@@ -456,7 +456,7 @@ function bindAdminCall(peerId, call) {
   }
   viewer.call = call;
   viewer.callConnected = false;
-  tuneAudioSender(call);
+  tuneMediaSenders(call);
 
   call.on('stream', (remoteStream) => {
     if (viewer.call !== call) return;
@@ -668,7 +668,7 @@ function bindViewerCall(call) {
   }
   state.adminCall = call;
   state.adminCallConnected = false;
-  tuneAudioSender(call);
+  tuneMediaSenders(call);
   call.on('stream', (remoteStream) => {
     if (state.adminCall !== call) return;
     state.adminCallConnected = true;
@@ -710,19 +710,21 @@ function getDisplayName() {
 // ---------------- CHAT ----------------
 function makeChatId() { return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8); }
 
-async function tuneAudioSender(call) {
+async function tuneMediaSenders(call) {
   try {
     const pc = call?.peerConnection;
     if (!pc) return;
     const senders = pc.getSenders ? pc.getSenders() : [];
     for (const s of senders) {
-      if (!s.track || s.track.kind !== 'audio') continue;
+      if (!s.track) continue;
       const params = s.getParameters ? s.getParameters() : null;
       if (!params) continue;
       params.encodings = params.encodings && params.encodings.length ? params.encodings : [{}];
-      params.encodings.forEach((e) => { e.maxBitrate = 128000; });
-      // Opus-specific hints (browser may ignore unsupported keys)
-      params.encodings.forEach((e) => { e.networkPriority = 'high'; e.priority = 'high'; });
+      if (s.track.kind === 'audio') {
+        params.encodings.forEach((e) => { e.maxBitrate = 128000; e.priority = 'high'; e.networkPriority = 'high'; });
+      } else if (s.track.kind === 'video') {
+        params.encodings.forEach((e) => { e.maxBitrate = 450000; e.maxFramerate = 24; e.scaleResolutionDownBy = 1; e.priority = 'high'; e.networkPriority = 'high'; });
+      }
       await s.setParameters(params).catch(() => {});
     }
   } catch {}
