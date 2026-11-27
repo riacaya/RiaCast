@@ -127,7 +127,7 @@
 /* Chat */
 .chat-section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .chat-messages { flex: 1; min-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
-.chat-msg { max-width: 92%; padding: 6px 8px; background: rgba(255,255,255,0.04); }
+.chat-msg { width: 60%; max-width: 60%; padding: 6px 8px; background: rgba(255,255,255,0.04); }
 .chat-msg.mine { align-self: flex-end; background: color-mix(in srgb, var(--accent) 18%, rgba(255,255,255,0.04)); }
 .chat-msg-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 0.68rem; color: var(--muted); margin-bottom: 2px; }
 .chat-msg-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
