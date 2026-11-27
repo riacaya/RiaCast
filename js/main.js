@@ -80,6 +80,29 @@ function bindUI() {
   els.chatForm?.addEventListener('submit', (e) => {
     e.preventDefault();
     sendChatFromUI();
+    $('chat-emoji-picker')?.classList.add('hidden');
+  });
+
+  const emojiPicker = $('chat-emoji-picker');
+  const emojiBtn = $('chat-emoji-btn');
+  const emojis = ['😀','😃','😄','😁','😅','😂','🤣','😊','😍','😘','😎','🤔','😮','😢','😭','😡','👍','👎','👏','🙏','💪','🔥','❤️','🎉','✅','❌','⭐','💡','📌','👀','💬','🚀','🙂','😉','😴','🤝','👌','✨','🎶','☕'];
+  if (emojiPicker) {
+    emojiPicker.innerHTML = emojis.map((e) => `<button type="button" class="chat-emoji">${e}</button>`).join('');
+    emojiPicker.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('.chat-emoji');
+      if (!btn || !els.chatInput) return;
+      const start = els.chatInput.selectionStart ?? els.chatInput.value.length;
+      const end = els.chatInput.selectionEnd ?? els.chatInput.value.length;
+      const v = els.chatInput.value;
+      const next = (v.slice(0, start) + btn.textContent + v.slice(end)).slice(0, 500);
+      els.chatInput.value = next;
+      const pos = Math.min(start + btn.textContent.length, next.length);
+      els.chatInput.focus();
+      els.chatInput.setSelectionRange(pos, pos);
+    });
+  }
+  emojiBtn?.addEventListener('click', () => {
+    emojiPicker?.classList.toggle('hidden');
   });
 
   els.btnSettings.addEventListener('click', () => {
