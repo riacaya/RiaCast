@@ -74,8 +74,7 @@ body.mode-admin .local-pip { display: none !important; }
   background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--text); cursor: pointer;
 }
 .ctrl-btn:hover { background: color-mix(in srgb, var(--accent) 30%, transparent); border-color: transparent; }
-.video-stage:has(.video-overlay:not(.hidden)) #btn-play { background: rgba(255,255,255,0.06); }
-.video-stage:has(.video-overlay:not(.hidden)) #btn-play:hover { background: rgba(255,255,255,0.12); }
+.video-stage:has(.video-overlay:not(.hidden)) #btn-play { display: none; }
 .ctrl-btn svg.hidden { display: none; }
 .ctrl-btn.hidden { display: none; }
 .vol-range { width: 110px; max-width: 24vw; accent-color: var(--accent); cursor: pointer; }
