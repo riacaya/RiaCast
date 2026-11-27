@@ -96,16 +96,24 @@ function bindUI() {
     try { await ensureLocalStream(); } catch {}
   });
 
-  els.btnCamToggle?.addEventListener('click', () => {
+  els.btnCamToggle?.addEventListener('click', async () => {
     state.camEnabled = !state.camEnabled;
-    if (state.localStream) state.localStream.getVideoTracks().forEach((t) => { t.enabled = state.camEnabled; });
+    if (isAdmin() && (state.playlistEl || state.screenSharing)) {
+      await rebuildAdminMix().catch(() => {});
+    } else if (state.localStream) {
+      state.localStream.getVideoTracks().forEach((t) => { t.enabled = state.camEnabled; });
+    }
     syncCamUI();
     log(state.camEnabled ? 'Kamera aktif.' : 'Kamera nonaktif.');
   });
 
-  els.btnMicToggle?.addEventListener('click', () => {
+  els.btnMicToggle?.addEventListener('click', async () => {
     state.micEnabled = !state.micEnabled;
-    if (state.localStream) state.localStream.getAudioTracks().forEach((t) => { t.enabled = state.micEnabled; });
+    if (isAdmin() && (state.playlistEl || state.screenSharing)) {
+      await rebuildAdminMix().catch(() => {});
+    } else if (state.localStream) {
+      state.localStream.getAudioTracks().forEach((t) => { t.enabled = state.micEnabled; });
+    }
     syncMicUI();
     log(state.micEnabled ? 'Mic aktif.' : 'Mic nonaktif.');
   });

@@ -105,6 +105,16 @@ var state = {
   playlistPlaying: false,
   playlistEl: null,
   playlistStream: null,
+  camDeviceStream: null,
+  micDeviceStream: null,
+  mixCanvas: null,
+  mixVideoTrack: null,
+  mixAudioCtx: null,
+  mixAudioDest: null,
+  mixMicSource: null,
+  mixMainAudioSource: null,
+  mixLoop: null,
+  mixOutputStream: null,
 };
 
 function loadSettings() {

@@ -221,6 +221,10 @@ async function _ensureLocalStreamImpl() {
     if (typeof setMainToAdminDefault === 'function') setMainToAdminDefault();
   }
   if (isAdmin()) renderViewerPanel();
+  if (isAdmin() && state.screenSharing && (state.camEnabled || state.micEnabled)) {
+    const mixed = await rebuildAdminMix().catch(() => false);
+    if (mixed) return state.localStream;
+  }
   await replaceLocalTracks(state.localStream);
   return state.localStream;
 }
@@ -1005,6 +1009,150 @@ function syncFullscreenUI() {
   }
 }
 
+// ---------------- ADMIN MIX ----------------
+function ensureMixCanvas() {
+  if (state.mixCanvas) return state.mixCanvas;
+  const c = document.createElement('canvas');
+  c.width = 1280; c.height = 720;
+  state.mixCanvas = c;
+  return c;
+}
+
+async function ensureCamDeviceStream() {
+  if (state.camDeviceStream && state.camDeviceStream.getVideoTracks().some(t => t.readyState === 'live')) return state.camDeviceStream;
+  try { state.camDeviceStream?.getTracks().forEach(t => t.stop()); } catch {}
+  state.camDeviceStream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+  return state.camDeviceStream;
+}
+
+async function ensureMicDeviceStream() {
+  if (state.micDeviceStream && state.micDeviceStream.getAudioTracks().some(t => t.readyState === 'live')) return state.micDeviceStream;
+  try { state.micDeviceStream?.getTracks().forEach(t => t.stop()); } catch {}
+  state.micDeviceStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+  return state.micDeviceStream;
+}
+
+function getMainMixVideoSource() {
+  if (state.playlistEl && !state.playlistEl.paused) return state.playlistEl;
+  if (state.screenSharing && state.localStream) {
+    // use a hidden video element for screen stream
+    if (!state._mixScreenEl) { state._mixScreenEl = document.createElement('video'); state._mixScreenEl.muted = true; state._mixScreenEl.playsInline = true; }
+    if (state._mixScreenEl.srcObject !== state.localStream) state._mixScreenEl.srcObject = state.localStream;
+    state._mixScreenEl.play().catch(() => {});
+    return state._mixScreenEl;
+  }
+  return null;
+}
+
+function stopAdminMixLoop() {
+  if (state.mixLoop) { cancelAnimationFrame(state.mixLoop); state.mixLoop = null; }
+}
+
+function stopAdminMix() {
+  stopAdminMixLoop();
+  if (state.mixOutputStream) {
+    try { state.mixOutputStream.getTracks().forEach(t => { try { t.stop(); } catch {} }); } catch {}
+  }
+  state.mixOutputStream = null;
+  state.mixVideoTrack = null;
+  try { state.mixAudioCtx?.close?.(); } catch {}
+  state.mixAudioCtx = null; state.mixAudioDest = null; state.mixMicSource = null; state.mixMainAudioSource = null;
+}
+
+async function rebuildAdminMix() {
+  if (!isAdmin()) return;
+  const mainVideoEl = getMainMixVideoSource();
+  const wantCam = !!state.camEnabled;
+  const wantMic = !!state.micEnabled;
+  const hasMain = !!mainVideoEl || !!(state.playlistEl);
+  // If no mixing needed, fall back to normal ensureLocalStream behavior
+  if (!hasMain) return false;
+
+  try { if (wantCam) await ensureCamDeviceStream(); } catch (e) { log('Kamera mix gagal: ' + (e?.message || e)); }
+  try { if (wantMic) await ensureMicDeviceStream(); } catch (e) { log('Mic mix gagal: ' + (e?.message || e)); }
+
+  const canvas = ensureMixCanvas();
+  const ctx = canvas.getContext('2d');
+  stopAdminMixLoop();
+
+  const draw = () => {
+    ctx.fillStyle = '#090b10'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const src = getMainMixVideoSource();
+    if (src && src.readyState >= 2) {
+      try {
+        const vw = src.videoWidth || canvas.width;
+        const vh = src.videoHeight || canvas.height;
+        const scale = Math.min(canvas.width / vw, canvas.height / vh);
+        const dw = vw * scale, dh = vh * scale;
+        ctx.drawImage(src, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
+      } catch {}
+    } else {
+      ctx.fillStyle = '#dce3ec'; ctx.font = '28px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('Siaran', canvas.width / 2, canvas.height / 2);
+    }
+    if (state.camEnabled && state.camDeviceStream) {
+      let camEl = state._mixCamEl;
+      if (!camEl) { camEl = document.createElement('video'); camEl.muted = true; camEl.playsInline = true; state._mixCamEl = camEl; }
+      if (camEl.srcObject !== state.camDeviceStream) camEl.srcObject = state.camDeviceStream;
+      camEl.play().catch(() => {});
+      if (camEl.readyState >= 2) {
+        const pw = Math.round(canvas.width * 0.22);
+        const ph = Math.round(pw * 9 / 16);
+        const px = canvas.width - pw - 24;
+        const py = 24;
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2;
+        ctx.strokeRect(px - 1, py - 1, pw + 2, ph + 2);
+        try { ctx.drawImage(camEl, px, py, pw, ph); } catch {}
+      }
+    }
+    state.mixLoop = requestAnimationFrame(draw);
+  };
+  draw();
+
+  if (!state.mixVideoTrack) state.mixVideoTrack = canvas.captureStream(30).getVideoTracks()[0];
+  const out = new MediaStream();
+  if (state.mixVideoTrack) out.addTrack(state.mixVideoTrack);
+
+  // Audio mix
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) {
+      try { state.mixAudioCtx?.close?.(); } catch {}
+      state.mixAudioCtx = new AC();
+      state.mixAudioDest = state.mixAudioCtx.createMediaStreamDestination();
+      if (state.camEnabled && wantMic && state.micDeviceStream) {
+        const ms = state.mixAudioCtx.createMediaStreamSource(state.micDeviceStream);
+        ms.connect(state.mixAudioDest);
+      }
+      const mainStream = state.playlistStream || state.localStream;
+      if (mainStream) {
+        const ats = mainStream.getAudioTracks();
+        if (ats.length) {
+          const src = state.mixAudioCtx.createMediaStreamSource(new MediaStream([ats[0]]));
+          src.connect(state.mixAudioDest);
+        }
+      }
+      const at = state.mixAudioDest.stream.getAudioTracks()[0];
+      if (at) out.addTrack(at);
+    }
+  } catch (e) { log('Audio mix gagal: ' + (e?.message || e)); }
+
+  state.mixOutputStream = out;
+  state.localStream = out;
+  els.localVideo.srcObject = out;
+  els.localPip.classList.toggle('hidden', true);
+  setInfo('media', 'Mix: ' + (state.playlistEl ? 'Playlist' : (state.screenSharing ? 'Screen' : 'Sumber')) + (state.camEnabled ? '+Cam' : '') + (wantMic ? '+Mic' : ''));
+  if (!state.spotlightId) {
+    els.mainVideo.muted = true;
+    if (els.mainVideo.srcObject !== out) els.mainVideo.srcObject = out;
+    els.mainVideo.play().catch(() => {});
+    setOverlay('', '', false);
+  }
+  renderViewerPanel();
+  await replaceLocalTracks(out);
+  return true;
+}
+
 // ---------------- PLAYLIST ----------------
 function makePlaylistDummyVideoTrack(labelText) {
   const canvas = document.createElement('canvas');
@@ -1043,6 +1191,11 @@ function stopPlaylistMedia() {
 
 async function activatePlaylistStream(stream, label) {
   state.playlistStream = stream;
+  if (isAdmin() && (state.camEnabled || state.micEnabled)) {
+    state.localStream = stream;
+    const mixed = await rebuildAdminMix().catch(() => false);
+    if (mixed) return;
+  }
   state.localStream = stream;
   els.localVideo.srcObject = stream;
   els.localPip.classList.toggle('hidden', isAdmin());
