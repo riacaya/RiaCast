@@ -216,7 +216,12 @@
           <div class="info-row"><span class="info-k">Media</span><span class="info-v" data-info="media">Belum siap</span></div>
         </div>
         <div class="status-log-section">
-          <h3 class="side-title status-log-title">Log</h3>
+          <div class="status-log-head">
+            <h3 class="side-title status-log-title">Log</h3>
+            <button id="btn-copy-log" type="button" class="icon-btn-small" aria-label="Salin Log" title="Salin Log">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+            </button>
+          </div>
           <textarea id="log-list" class="log-list log-text" readonly aria-label="Log"></textarea>
         </div>
       </div>

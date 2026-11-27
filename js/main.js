@@ -151,6 +151,21 @@ function bindUI() {
     closeOverlay('settings-overlay');
     openOverlay('status-overlay');
   });
+  $('btn-copy-log')?.addEventListener('click', async () => {
+    const text = els.logList?.value || '';
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+      else {
+        const ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      log('Log disalin.');
+    } catch (e) {
+      log('Gagal menyalin log: ' + (e?.message || e));
+    }
+  });
   $('open-about-panel')?.addEventListener('click', () => openOverlay('about-overlay'));
   $('open-chat-panel')?.addEventListener('click', () => {
     closeOverlay('settings-overlay');

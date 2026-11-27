@@ -167,5 +167,8 @@ body.mode-admin .settings-shortcuts .admin-only { display: flex; }
 .icon-save-btn { width: 42px; min-width: 42px; flex: 0 0 42px; padding: 0; display: inline-grid; place-items: center; }
 .status-section { flex: 0 0 auto; }
 .status-log-section { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
-.status-log-title { margin: 0 0 6px; flex: 0 0 auto; }
+.status-log-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; flex: 0 0 auto; }
+.status-log-title { margin: 0; }
+.icon-btn-small { width: 28px; height: 28px; display: inline-grid; place-items: center; border: none; border-radius: 50%; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--text); cursor: pointer; padding: 0; }
+.icon-btn-small:hover { background: color-mix(in srgb, var(--accent) 28%, transparent); }
 .status-log-section .log-text { flex: 1 1 0; min-height: 72px; height: auto; resize: none; overflow: auto; }
