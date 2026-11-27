@@ -8,6 +8,8 @@ Thumbs.db
 # Build/platform folders (not pushed per project policy)
 windows/
 android/
+windows-app/
+android-app/
 
 # Local env/secrets
 .env
