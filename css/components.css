@@ -158,8 +158,8 @@
 .settings-shortcuts .admin-only { display: none; }
 body.mode-admin .settings-shortcuts .admin-only { display: flex; }
 /* Status overlay */
-.overlay-card-status { width: min(390px, 100%); }
-.status-overlay-body { display: flex; flex-direction: column; gap: 14px; height: min(72vh, 640px); max-height: min(72vh, 640px); overflow: hidden; }
+.overlay-card-status { width: min(390px, 100%); max-height: calc(100vh - 40px); display: flex; flex-direction: column; }
+.status-overlay-body { display: flex; flex-direction: column; gap: 12px; flex: 1 1 auto; min-height: 0; overflow: hidden; }
 .status-name-section { flex: 0 0 auto; }
 .status-name-section .field { margin-bottom: 0; }
 .name-save-row { display: flex; gap: 8px; align-items: stretch; flex-wrap: nowrap; }
@@ -167,5 +167,5 @@ body.mode-admin .settings-shortcuts .admin-only { display: flex; }
 .icon-save-btn { width: 42px; min-width: 42px; flex: 0 0 42px; padding: 0; display: inline-grid; place-items: center; }
 .status-section { flex: 0 0 auto; }
 .status-log-section { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
-.status-log-title { margin: 0 0 8px; flex: 0 0 auto; }
-.status-log-section .log-text { flex: 1 1 0; min-height: 0; height: auto; resize: none; overflow: auto; }
+.status-log-title { margin: 0 0 6px; flex: 0 0 auto; }
+.status-log-section .log-text { flex: 1 1 0; min-height: 72px; height: auto; resize: none; overflow: auto; }
