@@ -65,12 +65,12 @@ async function ensureLocalStream() {
   try {
     if (videoSource === 'screen') {
       try {
-        screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 } }, audio: wantSystem, systemAudio: wantSystem ? 'include' : 'exclude' });
+        screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { ideal: 30, max: 30 } }, audio: wantSystem ? { echoCancellation: false, noiseSuppression: false, autoGainControl: false } : false, systemAudio: wantSystem ? 'include' : 'exclude' });
         screenStream.getVideoTracks().forEach((t) => out.addTrack(t));
         labels.push('Layar');
         if (wantSystem) {
           const sysA = screenStream.getAudioTracks();
-          if (sysA.length) { sysA.forEach((t) => out.addTrack(t)); labels.push('System'); }
+          if (sysA.length) { sysA.forEach((t) => { try { t.contentHint = 'music'; } catch {} out.addTrack(t); }); labels.push('System'); }
         }
       } catch (err) {
         log('Gagal rekam layar: ' + (err?.name || err?.message || err));
@@ -87,8 +87,8 @@ async function ensureLocalStream() {
 
     if (wantMic) {
       try {
-        micStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-        micStream.getAudioTracks().forEach((t) => out.addTrack(t));
+        micStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+        micStream.getAudioTracks().forEach((t) => { try { t.contentHint = 'speech'; } catch {} out.addTrack(t); });
         labels.push('Mic');
       } catch (err) {
         log('Gagal mic: ' + (err?.name || err?.message || err));
@@ -100,8 +100,8 @@ async function ensureLocalStream() {
       const hasSystem = screenStream && screenStream.getAudioTracks().length > 0;
       if (!hasSystem) {
         try {
-          const sys = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true, systemAudio: 'include' });
-          sys.getAudioTracks().forEach((t) => out.addTrack(t));
+          const sys = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }, systemAudio: 'include' });
+          sys.getAudioTracks().forEach((t) => { try { t.contentHint = 'music'; } catch {} out.addTrack(t); });
           sys.getVideoTracks().forEach((t) => { if (out.getVideoTracks().length === 0) out.addTrack(t); else t.stop(); });
           if (sys.getAudioTracks().length) labels.push(out.getVideoTracks().length && videoSource === 'off' ? 'Layar+System' : 'System');
           else sys.getTracks().forEach((t) => { if (!out.getTracks().includes(t)) t.stop(); });
@@ -120,7 +120,7 @@ async function ensureLocalStream() {
     try {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       if (Ctx) {
-        const ac = new Ctx();
+        let ac; try { ac = new Ctx({ sampleRate: 48000 }); } catch { ac = new Ctx(); }
         if (ac.state === 'suspended') await ac.resume().catch(() => {});
         const dest = ac.createMediaStreamDestination();
         audioTracks.forEach((t) => {
@@ -129,6 +129,7 @@ async function ensureLocalStream() {
         const mixed = dest.stream.getAudioTracks()[0];
         if (mixed) {
           audioTracks.forEach((t) => { out.removeTrack(t); t.stop(); });
+          try { mixed.contentHint = 'music'; } catch {}
           out.addTrack(mixed);
           out.__riacastAudioCtx = ac;
         } else {
