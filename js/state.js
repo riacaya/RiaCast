@@ -86,6 +86,7 @@ var state = {
   screenSharing: false,
   screenPaused: false,
   chatMessages: [],
+  viewerPresence: [],
   destroyed: false,
 };
 

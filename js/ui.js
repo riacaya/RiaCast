@@ -179,9 +179,32 @@ function ensureViewerListItem(peerId, viewer) {
   return item;
 }
 
+function renderViewerPresence() {
+  if (!els.viewerList) return;
+  if (isAdmin()) { syncViewerSidebar(); return; }
+  const list = Array.isArray(state.viewerPresence) ? state.viewerPresence : [];
+  els.viewerList.innerHTML = '';
+  const head = document.createElement('div');
+  head.className = 'viewer-empty';
+  head.textContent = list.length ? `${list.length} penonton online` : 'Belum ada penonton.';
+  els.viewerList.appendChild(head);
+  for (const v of list) {
+    const item = document.createElement('div');
+    item.className = 'viewer-item viewer-item-compact';
+    const dot = document.createElement('span');
+    dot.className = 'viewer-dot';
+    const name = document.createElement('div');
+    name.className = 'viewer-item-name';
+    name.textContent = v.name || v.id || 'User';
+    item.appendChild(dot);
+    item.appendChild(name);
+    els.viewerList.appendChild(item);
+  }
+}
+
 function syncViewerSidebar() {
   if (!els.viewerList) return;
-  if (!isAdmin()) { els.viewerList.innerHTML = ''; return; }
+  if (!isAdmin()) { renderViewerPresence(); return; }
   ensureViewerListItem('__self__', null);
   [...els.viewerList.querySelectorAll('.viewer-item[data-peer]')].forEach((el) => {
     const id = el.dataset.peer;

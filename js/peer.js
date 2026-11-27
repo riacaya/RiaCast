@@ -379,11 +379,13 @@ async function handleAdminData(peerId, data) {
     log(`Penonton hadir: ${viewer.name} (${peerId})`);
     send(viewer.conn, { type: 'admin-ready', adminId: ADMIN_PEER_ID });
     await autoApproveViewer(peerId);
+    broadcastPresence();
   }
   if (data.type === 'request-call') {
     viewer.name = String(data.name || viewer.name || peerId).slice(0, 32);
     log(`Permintaan sambungan dari ${viewer.name} (${peerId}) - auto approve`);
     await autoApproveViewer(peerId);
+    broadcastPresence();
   }
   if (data.type === 'chat') {
     const text = String(data.text || '').trim().slice(0, 500);
@@ -503,6 +505,7 @@ function removeViewer(peerId, reason) {
   state.viewers.delete(peerId);
   log(`Penonton keluar: ${peerId} (${reason || 'unknown'})`);
   updateCounts();
+  broadcastPresence();
   if (isAdmin() && state.viewers.size === 0) {
     setStatus('Siaran aktif, menunggu penonton', 'ok');
     setOverlay('', '', false);
@@ -617,6 +620,11 @@ async function handleViewerData(data) {
       self: false,
     });
   }
+  if (data.type === 'presence') {
+    const list = Array.isArray(data.viewers) ? data.viewers : [];
+    state.viewerPresence = list.map((v) => ({ id: String(v.id || ''), name: String(v.name || v.id || 'User').slice(0, 32) }));
+    if (typeof renderViewerPresence === 'function') renderViewerPresence();
+  }
 }
 
 async function handleViewerIncomingCall(call) {
@@ -716,6 +724,16 @@ function broadcastChat(msg, excludePeerId) {
     if (excludePeerId && peerId === excludePeerId) continue;
     if (viewer.conn) send(viewer.conn, { type: 'chat', ...msg });
   }
+}
+
+function broadcastPresence() {
+  if (!isAdmin()) return;
+  const viewers = [...state.viewers.values()].map((v) => ({ id: v.peerId, name: (v.name || v.peerId).slice(0, 32) }));
+  const payload = { type: 'presence', viewers, count: viewers.length };
+  for (const v of state.viewers.values()) {
+    if (v.conn) send(v.conn, payload);
+  }
+  state.viewerPresence = viewers;
 }
 
 // ---------------- UI ----------------
