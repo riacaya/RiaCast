@@ -164,10 +164,6 @@
       </div>
       <div class="overlay-body">
         <label class="field">
-          <span>Nama tampilan</span>
-          <input id="display-name" type="text" maxlength="32" placeholder="Nama Anda">
-        </label>
-        <label class="field">
           <span>Sumber Video</span>
           <select id="pref-video" class="field-select">
             <option value="camera">Kamera</option>
@@ -199,6 +195,15 @@
         <button type="button" class="overlay-close" data-close="status-overlay" aria-label="Tutup">&times;</button>
       </div>
       <div class="overlay-body status-overlay-body">
+        <div class="status-name-section">
+          <label class="field">
+            <span>Nama tampilan</span>
+            <input id="display-name" type="text" maxlength="32" placeholder="Nama Anda">
+          </label>
+          <div class="overlay-actions">
+            <button id="save-name" type="button" class="btn-primary">Simpan Nama</button>
+          </div>
+        </div>
         <div class="status-section">
           <div class="info-row"><span class="info-k">Mode</span><span class="info-v" data-info="mode">Penonton</span></div>
           <div class="info-row"><span class="info-k">ID Saya</span><span class="info-v" data-info="myId">-</span></div>

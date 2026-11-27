@@ -142,12 +142,12 @@ function bindUI() {
   });
   $('open-device-panel')?.addEventListener('click', () => {
     if (!isAdmin()) return;
-    els.displayName.value = state.settings.displayName || '';
     els.prefVideo.value = state.settings.videoSource || 'camera';
     els.prefAudio.value = state.settings.audioSource || 'mic';
     openOverlay('device-overlay');
   });
   $('open-status-panel')?.addEventListener('click', () => {
+    if (els.displayName) els.displayName.value = state.settings.displayName || '';
     closeOverlay('settings-overlay');
     openOverlay('status-overlay');
   });
@@ -165,18 +165,22 @@ function bindUI() {
   qsa('.theme-btn[data-theme]').forEach((btn) => btn.addEventListener('click', () => applyTheme(btn.dataset.theme)));
 
   els.saveSettings.addEventListener('click', async () => {
-    state.settings.displayName = els.displayName.value.trim().slice(0, 32);
     state.settings.videoSource = els.prefVideo.value || 'camera';
     state.settings.audioSource = els.prefAudio.value || 'mic';
     saveSettings();
     closeOverlay('device-overlay');
     log('Pengaturan device disimpan.');
-    // Apply media changes: restart stream if needed
     const hadStream = !!state.localStream;
     stopLocalStream();
     if (hadStream || isAdmin()) {
       try { await ensureLocalStream(); } catch {}
     }
+  });
+  $('save-name')?.addEventListener('click', () => {
+    if (!els.displayName) return;
+    state.settings.displayName = els.displayName.value.trim().slice(0, 32);
+    saveSettings();
+    log('Nama tampilan disimpan.');
   });
 
   $('open-admin-panel')?.addEventListener('click', () => {
