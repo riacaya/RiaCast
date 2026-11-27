@@ -9,7 +9,7 @@
   position: relative; width: 100%; aspect-ratio: 16 / 9; background: #090b10; border-radius: 0; overflow: hidden;
   border: none;
 }
-.main-video, .local-pip video { width: 100%; height: 100%; object-fit: cover; background: #090b10; }
+.main-video, .local-pip video { width: 100%; height: 100%; object-fit: cover; object-position: center center; background: #090b10; }
 .main-video { display: block; }
 .viewer-panel {
   position: absolute; left: 8px; right: 8px; bottom: 54px; padding: 6px; border-radius: 0;
