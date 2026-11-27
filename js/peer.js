@@ -51,7 +51,6 @@ async function ensureLocalStream() {
   }
   const videoSource = state.settings.videoSource || 'camera';
   const audioSource = state.settings.audioSource || 'mic';
-  const wantVideo = videoSource !== 'off';
   const wantMic = audioSource === 'mic' || audioSource === 'both';
   const wantSystem = audioSource === 'system' || audioSource === 'both';
 
