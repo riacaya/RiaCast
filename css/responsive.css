@@ -51,7 +51,8 @@
   html, body { height: 100%; }
   .app-shell { padding-bottom: 0; height: 100vh; height: 100dvh; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
   .app-header { flex: 0 0 auto; }
-  .main-grid { flex: 1 1 auto; min-height: 0; align-items: stretch; }
+  .main-grid { flex: 1 1 auto; min-height: 0; align-items: stretch; grid-template-columns: minmax(0, 1fr) 350px; }
+  .side-card { display: flex; }
   .stage-card { display: flex; flex-direction: column; justify-content: center; min-height: 0; }
   .video-stage { width: min(100%, calc((100vh - 120px) * 16 / 9)); width: min(100%, calc((100dvh - 120px) * 16 / 9)); max-height: calc(100vh - 120px); max-height: calc(100dvh - 120px); margin: 0 auto; }
   .app-footer { padding: 8px 12px 12px; margin-top: 0; flex: 0 0 auto; }
