@@ -1,4 +1,4 @@
-.main-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 0; margin-top: 0; align-items: stretch; }
+.main-grid { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 0; margin-top: 0; align-items: stretch; }
 .stage-card, .side-card {
   background: transparent; border: none; border-radius: 0;
   backdrop-filter: none; box-shadow: none;
