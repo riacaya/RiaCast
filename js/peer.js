@@ -963,11 +963,40 @@ async function rebuildAdminMix() {
   const canvas = ensureMixCanvas();
   const ctx = canvas.getContext('2d');
   stopAdminMixLoop();
+  const mixLogo = new Image();
+  mixLogo.src = 'assets/logo.svg';
+
+  const drawAudioPlaceholder = (title) => {
+    const w = canvas.width, h = canvas.height;
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#121826');
+    g.addColorStop(1, '#090b10');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(255,106,61,0.08)';
+    ctx.beginPath(); ctx.arc(w * 0.5, h * 0.45, 220, 0, Math.PI * 2); ctx.fill();
+    if (mixLogo.complete && mixLogo.naturalWidth) {
+      const size = 180;
+      ctx.drawImage(mixLogo, (w - size) / 2, h * 0.28 - size / 2, size, size);
+    } else {
+      ctx.fillStyle = '#ff6a3d'; ctx.font = 'bold 64px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('RiaCast', w / 2, h * 0.32);
+    }
+    ctx.fillStyle = '#dce3ec'; ctx.font = '600 34px sans-serif'; ctx.textAlign = 'center';
+    const t0 = String(title || 'Audio Playlist');
+    let t = t0;
+    const maxW = w - 160;
+    while (ctx.measureText(t).width > maxW && t.length > 10) t = t.slice(0, -4) + '...';
+    ctx.fillText(t, w / 2, h * 0.62);
+    ctx.fillStyle = 'rgba(220,227,236,0.65)'; ctx.font = '24px sans-serif';
+    ctx.fillText('MP3 / Audio', w / 2, h * 0.69);
+  };
 
   const draw = () => {
     ctx.fillStyle = '#090b10'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     const src = getMainMixVideoSource();
-    if (src && src.readyState >= 2) {
+    const hasVideo = src && src.readyState >= 2 && (src.videoWidth || 0) > 0;
+    if (hasVideo) {
       try {
         const vw = src.videoWidth || canvas.width;
         const vh = src.videoHeight || canvas.height;
@@ -975,6 +1004,9 @@ async function rebuildAdminMix() {
         const dw = vw * scale, dh = vh * scale;
         ctx.drawImage(src, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
       } catch {}
+    } else if (state.mainSource === 'playlist') {
+      const item = state.playlist[state.playlistIndex];
+      drawAudioPlaceholder(item?.name || 'Audio Playlist');
     } else {
       ctx.fillStyle = '#dce3ec'; ctx.font = '28px sans-serif'; ctx.textAlign = 'center';
       ctx.fillText('Siaran', canvas.width / 2, canvas.height / 2);
@@ -1080,16 +1112,36 @@ async function stopScreenCapture() {
 // ---------------- PLAYLIST ----------------
 function makePlaylistDummyVideoTrack(labelText) {
   const canvas = document.createElement('canvas');
-  canvas.width = 640; canvas.height = 360;
+  canvas.width = 1280; canvas.height = 720;
   const ctx = canvas.getContext('2d');
   let running = true;
+  const logo = new Image();
+  logo.src = 'assets/logo.svg';
   const draw = () => {
     if (!running) return;
-    ctx.fillStyle = '#141922'; ctx.fillRect(0, 0, 640, 360);
-    ctx.fillStyle = '#ff6a3d'; ctx.font = 'bold 34px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('RiaCast', 320, 150);
-    ctx.fillStyle = '#dce3ec'; ctx.font = '20px sans-serif';
-    ctx.fillText(labelText || 'Audio Playlist', 320, 210);
+    const w = canvas.width, h = canvas.height;
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, '#121826');
+    g.addColorStop(1, '#090b10');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(255,106,61,0.08)';
+    ctx.beginPath(); ctx.arc(w * 0.5, h * 0.45, 220, 0, Math.PI * 2); ctx.fill();
+    if (logo.complete && logo.naturalWidth) {
+      const size = 180;
+      ctx.drawImage(logo, (w - size) / 2, h * 0.28 - size / 2, size, size);
+    } else {
+      ctx.fillStyle = '#ff6a3d'; ctx.font = 'bold 64px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('RiaCast', w / 2, h * 0.32);
+    }
+    ctx.fillStyle = '#dce3ec'; ctx.font = '600 34px sans-serif'; ctx.textAlign = 'center';
+    const title = String(labelText || 'Audio Playlist');
+    const maxW = w - 160;
+    let t = title;
+    while (ctx.measureText(t).width > maxW && t.length > 10) t = t.slice(0, -4) + '...';
+    ctx.fillText(t, w / 2, h * 0.62);
+    ctx.fillStyle = 'rgba(220,227,236,0.65)'; ctx.font = '24px sans-serif';
+    ctx.fillText('MP3 / Audio', w / 2, h * 0.69);
     requestAnimationFrame(draw);
   };
   draw();
