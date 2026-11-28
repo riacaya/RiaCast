@@ -1003,8 +1003,6 @@ async function rebuildAdminMix() {
     g.addColorStop(1, '#090b10');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = 'rgba(255,106,61,0.08)';
-    ctx.beginPath(); ctx.arc(w * 0.5, h * 0.45, 220, 0, Math.PI * 2); ctx.fill();
     if (mixLogo.complete && mixLogo.naturalWidth) {
       const size = 240;
       ctx.drawImage(mixLogo, (w - size) / 2, h * 0.45 - size / 2, size, size);
@@ -1185,8 +1183,6 @@ function makePlaylistDummyVideoTrack(labelText) {
     g.addColorStop(1, '#090b10');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = 'rgba(255,106,61,0.08)';
-    ctx.beginPath(); ctx.arc(w * 0.5, h * 0.45, 220, 0, Math.PI * 2); ctx.fill();
     if (logo.complete && logo.naturalWidth) {
       const size = 240;
       ctx.drawImage(logo, (w - size) / 2, h * 0.45 - size / 2, size, size);
