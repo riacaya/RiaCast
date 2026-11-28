@@ -1143,7 +1143,7 @@ async function toggleScreenCapture() {
     state.mainSource = 'screen';
     const vTrack = stream.getVideoTracks()[0];
     if (vTrack) vTrack.addEventListener('ended', () => { stopScreenCapture().catch(() => {}); });
-    if (els.btnScreenShare) els.btnScreenShare.textContent = 'Hentikan Rekam Layar';
+    if (els.btnScreenShare) els.btnScreenShare.textContent = 'Stop Rekam';
     syncShareUI();
     await ensureLocalStream();
     log('Rekam layar dimulai.');
@@ -1160,7 +1160,7 @@ async function stopScreenCapture() {
   state.screenSharing = false;
   state.screenPaused = false;
   if (state.mainSource === 'screen') state.mainSource = 'camera';
-  if (els.btnScreenShare) els.btnScreenShare.textContent = 'Mulai Rekam Layar';
+  if (els.btnScreenShare) els.btnScreenShare.textContent = 'Rekam Layar';
   syncShareUI();
   stopAdminMix();
   await ensureLocalStream();

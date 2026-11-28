@@ -414,7 +414,7 @@ function syncMicUI() {
 function syncStudioUI() {
   if (els.studioSource) els.studioSource.value = state.mainSource || 'camera';
   if (els.btnScreenShare) {
-    els.btnScreenShare.textContent = state.screenCaptureStream ? 'Hentikan Rekam Layar' : 'Mulai Rekam Layar';
+    els.btnScreenShare.textContent = state.screenCaptureStream ? 'Stop Rekam' : 'Rekam Layar';
   }
 }
 

@@ -89,6 +89,7 @@
 .overlay-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .overlay-actions-studio { justify-content: stretch; flex-wrap: wrap; }
 .overlay-actions-studio .btn-primary, .overlay-actions-studio .btn-ghost { flex: 1; min-width: 140px; }
+.overlay-actions-studio .btn-compact { flex: 0 0 auto; min-width: 0; padding: 8px 12px; font-size: 0.82rem; font-weight: 600; }
 .btn-primary {
   padding: 11px 18px; border: 0; border-radius: 0; background: linear-gradient(135deg, var(--accent), #ff8645);
   color: #fff; font-weight: 700; cursor: pointer;
