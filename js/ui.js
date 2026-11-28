@@ -489,3 +489,25 @@ function syncPlaylistProgress() {
     if (Number(prog.value) !== val) prog.value = String(val);
   }
 }
+
+function setSidebarPanel(name) {
+  const valid = ['viewers', 'device', 'playlist'];
+  const target = valid.includes(name) ? name : 'viewers';
+  const side = $('side-card');
+  const isMobile = window.innerWidth <= 1024;
+  if (isMobile && side && side.classList.contains('mobile-open') && state.sidebarPanel === target) {
+    side.classList.remove('mobile-open');
+    return;
+  }
+  state.sidebarPanel = target;
+  qsa('[data-sidebar-panel]').forEach((el) => {
+    el.classList.toggle('hidden', el.dataset.sidebarPanel !== target);
+  });
+  const map = { viewers: 'btn-header-viewers', device: 'btn-header-device', playlist: 'btn-header-playlist' };
+  Object.entries(map).forEach(([key, id]) => {
+    $(id)?.classList.toggle('active', key === target);
+  });
+  if (side && isMobile) side.classList.add('mobile-open');
+  if (target === 'playlist') renderPlaylist();
+  if (target === 'device' && typeof syncStudioUI === 'function') syncStudioUI();
+}

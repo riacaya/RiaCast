@@ -27,6 +27,9 @@
         </div>
       </div>
       <div class="header-actions">
+        <button id="btn-header-viewers" class="icon-btn admin-only-header hidden" type="button" aria-label="Penonton" title="Penonton">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Zm-4 6c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/></svg>
+        </button>
         <button id="btn-header-device" class="icon-btn admin-only-header hidden" type="button" aria-label="Studio Input" title="Studio Input">
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg>
         </button>
@@ -99,9 +102,58 @@
       </section>
 
       <aside class="side-card" id="side-card">
-        <div class="side-section viewer-list-section" id="viewer-list-section">
-          <h3 class="side-title">Penonton</h3>
-          <div id="viewer-list" class="viewer-list" aria-live="polite"></div>
+        <div id="sidebar-panel-viewers" class="sidebar-panel" data-sidebar-panel="viewers">
+          <div class="side-section viewer-list-section" id="viewer-list-section">
+            <h3 class="side-title">Penonton</h3>
+            <div id="viewer-list" class="viewer-list" aria-live="polite"></div>
+          </div>
+        </div>
+        <div id="sidebar-panel-device" class="sidebar-panel hidden" data-sidebar-panel="device">
+          <div class="side-section">
+            <h3 class="side-title">Studio Input</h3>
+            <div class="sidebar-panel-body">
+              <label class="field">
+                <span>Sumber Frame</span>
+                <select id="studio-source" class="field-select">
+                  <option value="camera">Kamera</option>
+                  <option value="screen">Rekam Layar</option>
+                  <option value="playlist">Playlist</option>
+                </select>
+              </label>
+              <p class="field-note">Pilih satu sumber yang tampil penuh di frame: Kamera, Rekam Layar, atau Playlist. Mic dan audio playlist bisa aktif bersamaan.</p>
+              <div class="overlay-actions overlay-actions-studio">
+                <button id="btn-screen-share" type="button" class="btn-primary">Mulai Rekam Layar</button>
+                <button id="studio-open-playlist" type="button" class="btn-ghost">Buka Playlist</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="sidebar-panel-playlist" class="sidebar-panel hidden" data-sidebar-panel="playlist">
+          <div class="side-section">
+            <h3 class="side-title">Playlist</h3>
+            <div class="sidebar-panel-body playlist-body">
+              <div class="playlist-controls">
+                <button id="playlist-prev" type="button" class="icon-btn-small" aria-label="Sebelumnya" title="Sebelumnya"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+                <button id="playlist-play" type="button" class="icon-btn-small" aria-label="Putar" title="Putar"><svg id="playlist-play-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg><svg id="playlist-pause-icon" class="hidden" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
+                <button id="playlist-next" type="button" class="icon-btn-small" aria-label="Berikutnya" title="Berikutnya"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+                <button id="playlist-loop" type="button" class="icon-btn-small" aria-label="Loop" title="Loop"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
+              </div>
+              <div class="playlist-progress-wrap">
+                <input id="playlist-progress" class="playlist-progress" type="range" min="0" max="1000" value="0" aria-label="Progres playlist">
+                <div class="playlist-time"><span id="playlist-current">00:00</span> / <span id="playlist-duration">00:00</span></div>
+              </div>
+              <div class="playlist-actions">
+                <label class="icon-btn-small playlist-icon-btn" for="playlist-file-input" aria-label="Tambah file" title="Tambah file"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 4H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2z"/></svg></label>
+                <input id="playlist-file-input" type="file" accept="audio/*,video/*" multiple class="hidden-file-input">
+                <div class="playlist-actions-right">
+                  <button id="playlist-save" type="button" class="icon-btn-small playlist-icon-btn" aria-label="Simpan playlist" title="Simpan playlist"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg></button>
+                  <button id="playlist-clear" type="button" class="icon-btn-small playlist-icon-btn" aria-label="Bersihkan daftar" title="Bersihkan daftar"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+                </div>
+              </div>
+              <div class="playlist-now" id="playlist-now">Belum ada media diputar.</div>
+              <div id="playlist-list" class="playlist-list" aria-live="polite"></div>
+            </div>
+          </div>
         </div>
       </aside>
     </main>
@@ -161,29 +213,6 @@
     </div>
   </div>
 
-  <div id="device-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="device-title">
-    <div class="overlay-card overlay-card-sm">
-      <div class="overlay-head">
-        <h2 id="device-title" class="overlay-title-icon"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg><span>Studio Input</span></h2>
-        <button type="button" class="overlay-close" data-close="device-overlay" aria-label="Tutup">&times;</button>
-      </div>
-      <div class="overlay-body">
-        <label class="field">
-          <span>Sumber Frame</span>
-          <select id="studio-source" class="field-select">
-            <option value="camera">Kamera</option>
-            <option value="screen">Rekam Layar</option>
-            <option value="playlist">Playlist</option>
-          </select>
-        </label>
-        <p class="field-note">Pilih satu sumber yang tampil penuh di frame: Kamera, Rekam Layar, atau Playlist. Mic dan audio playlist bisa aktif bersamaan.</p>
-        <div class="overlay-actions overlay-actions-studio">
-          <button id="btn-screen-share" type="button" class="btn-primary">Mulai Rekam Layar</button>
-          <button id="studio-open-playlist" type="button" class="btn-ghost">Buka Playlist</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div id="status-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="status-title">
     <div class="overlay-card overlay-card-status">
@@ -225,36 +254,6 @@
     </div>
   </div>
 
-  <div id="playlist-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="playlist-title">
-    <div class="overlay-card overlay-card-playlist">
-      <div class="overlay-head">
-        <h2 id="playlist-title" class="overlay-title-icon"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2zm12 0 4 3-4 3v-6z"/></svg><span>Playlist</span></h2>
-        <button type="button" class="overlay-close" data-close="playlist-overlay" aria-label="Tutup">&times;</button>
-      </div>
-      <div class="overlay-body playlist-body">
-        <div class="playlist-controls">
-          <button id="playlist-prev" type="button" class="icon-btn-small" aria-label="Sebelumnya" title="Sebelumnya"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
-          <button id="playlist-play" type="button" class="icon-btn-small" aria-label="Putar" title="Putar"><svg id="playlist-play-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg><svg id="playlist-pause-icon" class="hidden" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
-          <button id="playlist-next" type="button" class="icon-btn-small" aria-label="Berikutnya" title="Berikutnya"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
-          <button id="playlist-loop" type="button" class="icon-btn-small" aria-label="Loop" title="Loop"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
-        </div>
-        <div class="playlist-progress-wrap">
-          <input id="playlist-progress" class="playlist-progress" type="range" min="0" max="1000" value="0" aria-label="Progres playlist">
-          <div class="playlist-time"><span id="playlist-current">00:00</span> / <span id="playlist-duration">00:00</span></div>
-        </div>
-        <div class="playlist-actions">
-          <label class="icon-btn-small playlist-icon-btn" for="playlist-file-input" aria-label="Tambah file" title="Tambah file"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M10 4H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2z"/></svg></label>
-          <input id="playlist-file-input" type="file" accept="audio/*,video/*" multiple class="hidden-file-input">
-          <div class="playlist-actions-right">
-            <button id="playlist-save" type="button" class="icon-btn-small playlist-icon-btn" aria-label="Simpan playlist" title="Simpan playlist"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg></button>
-            <button id="playlist-clear" type="button" class="icon-btn-small playlist-icon-btn" aria-label="Bersihkan daftar" title="Bersihkan daftar"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
-          </div>
-        </div>
-        <div class="playlist-now" id="playlist-now">Belum ada media diputar.</div>
-        <div id="playlist-list" class="playlist-list" aria-live="polite"></div>
-      </div>
-    </div>
-  </div>
 
   <div id="about-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="about-title">
     <div class="overlay-card">

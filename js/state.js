@@ -117,6 +117,7 @@ var state = {
   mixMainAudioSource: null,
   mixLoop: null,
   mixOutputStream: null,
+  sidebarPanel: 'viewers',
 };
 
 function loadSettings() {

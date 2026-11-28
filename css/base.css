@@ -92,3 +92,4 @@ button, input { font: inherit; }
 .icon-btn:hover { background: color-mix(in srgb, var(--accent) 30%, transparent); }
 .icon-btn:active { transform: scale(0.97); }
 .icon-btn.active-admin { color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 20%, transparent); }
+.icon-btn.active { color: var(--accent); background: color-mix(in srgb, var(--accent) 20%, transparent); }

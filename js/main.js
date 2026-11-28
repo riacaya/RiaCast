@@ -7,6 +7,16 @@ function bindUI() {
     });
   });
   window.addEventListener('resize', syncSidebarHeight);
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1024) $('side-card')?.classList.remove('mobile-open');
+  });
+  document.addEventListener('click', (e) => {
+    const side = $('side-card');
+    if (!side || !side.classList.contains('mobile-open')) return;
+    if (side.contains(e.target)) return;
+    if (e.target.closest('#btn-header-viewers, #btn-header-device, #btn-header-playlist')) return;
+    side.classList.remove('mobile-open');
+  });
   if (window.ResizeObserver) {
     const ro = new ResizeObserver(() => { requestAnimationFrame(syncSidebarHeight); });
     const stageCard = document.querySelector('.stage-card');
@@ -31,7 +41,7 @@ function bindUI() {
     if (list && section && list.parentElement !== section) section.appendChild(list);
   };
 
-  ['settings-overlay', 'admin-overlay', 'device-overlay', 'status-overlay', 'playlist-overlay', 'about-overlay', 'chat-overlay', 'viewers-overlay'].forEach((id) => {
+  ['settings-overlay', 'admin-overlay', 'status-overlay', 'about-overlay', 'chat-overlay', 'viewers-overlay'].forEach((id) => {
     const ov = $(id);
     ov?.addEventListener('click', (e) => { if (e.target === ov) { if (id === 'viewers-overlay') moveViewerListBack(); ov.classList.add('hidden'); } });
   });
@@ -40,9 +50,7 @@ function bindUI() {
       if (!$('viewers-overlay')?.classList.contains('hidden')) moveViewerListBack();
       closeOverlay('settings-overlay');
       closeOverlay('admin-overlay');
-      closeOverlay('device-overlay');
       closeOverlay('status-overlay');
-      closeOverlay('playlist-overlay');
       closeOverlay('about-overlay');
       closeOverlay('chat-overlay');
       closeOverlay('viewers-overlay');
@@ -132,18 +140,9 @@ function bindUI() {
   els.btnSettings.addEventListener('click', () => {
     openOverlay('settings-overlay');
   });
-  const openDevicePanel = () => {
-    if (!isAdmin()) return;
-    if (typeof syncStudioUI === 'function') syncStudioUI();
-    openOverlay('device-overlay');
-  };
-  const openPlaylistPanel = () => {
-    if (!isAdmin()) return;
-    renderPlaylist();
-    openOverlay('playlist-overlay');
-  };
-  $('btn-header-device')?.addEventListener('click', openDevicePanel);
-  $('btn-header-playlist')?.addEventListener('click', openPlaylistPanel);
+  $('btn-header-viewers')?.addEventListener('click', () => { if (!isAdmin()) return; setSidebarPanel('viewers'); });
+  $('btn-header-device')?.addEventListener('click', () => { if (!isAdmin()) return; setSidebarPanel('device'); });
+  $('btn-header-playlist')?.addEventListener('click', () => { if (!isAdmin()) return; setSidebarPanel('playlist'); });
   $('open-status-panel')?.addEventListener('click', () => {
     if (els.displayName) els.displayName.value = state.settings.displayName || '';
     closeOverlay('settings-overlay');
@@ -214,14 +213,14 @@ function bindUI() {
       if (state.playlistStream && state.playlistEl) {
         await ensureLocalStream().catch(() => {});
       } else {
-        openOverlay('playlist-overlay');
+        setSidebarPanel('playlist');
         await ensureLocalStream().catch(() => {});
       }
     }
     if (typeof syncStudioUI === 'function') syncStudioUI();
   });
 
-  els.studioOpenPlaylist?.addEventListener('click', () => { if (isAdmin()) openOverlay('playlist-overlay'); });
+  els.studioOpenPlaylist?.addEventListener('click', () => { if (isAdmin()) setSidebarPanel('playlist'); });
 
   $('save-name')?.addEventListener('click', () => {
     if (!els.displayName) return;
@@ -300,6 +299,7 @@ async function boot() {
   syncShareUI();
   syncCamUI();
   syncMicUI();
+  if (typeof setSidebarPanel === 'function') setSidebarPanel(state.sidebarPanel || 'viewers');
   els.displayName.value = state.settings.displayName || '';
 
   if (!window.Peer) {

@@ -934,7 +934,7 @@ async function ensureMicDeviceStream() {
 }
 
 function getMainVideoSource() {
-  if (state.mainSource === 'camera' && state.camDeviceStream) {
+  if (state.mainSource === 'camera' && state.camEnabled && state.camDeviceStream) {
     if (!state._mixCamMainEl) { state._mixCamMainEl = document.createElement('video'); state._mixCamMainEl.muted = true; state._mixCamMainEl.playsInline = true; }
     if (state._mixCamMainEl.srcObject !== state.camDeviceStream) state._mixCamMainEl.srcObject = state.camDeviceStream;
     state._mixCamMainEl.play().catch(() => {});
@@ -993,7 +993,6 @@ async function rebuildAdminMix() {
   const canvas = ensureMixCanvas();
   const ctx = canvas.getContext('2d');
   if (buildId !== _mixBuildSeq) return false;
-  stopAdminMixLoop();
   const mixLogo = new Image();
   mixLogo.src = 'assets/logo.svg';
 
@@ -1025,6 +1024,7 @@ async function rebuildAdminMix() {
   };
 
   const draw = () => {
+    if (buildId !== _mixBuildSeq) return;
     ctx.fillStyle = '#090b10'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     const src = getMainVideoSource();
     const hasVideo = src && src.readyState >= 2 && (src.videoWidth || 0) > 0;
@@ -1051,7 +1051,6 @@ async function rebuildAdminMix() {
     }
     state.mixLoop = requestAnimationFrame(draw);
   };
-  draw();
 
   if (!state.mixVideoTrack || state.mixVideoTrack.readyState === 'ended') {
     try { state.mixVideoTrack?.stop?.(); } catch {}
@@ -1062,19 +1061,18 @@ async function rebuildAdminMix() {
 
   // Audio mix: mic + playlist audio (if playing) + screen audio (if screen is main source)
   let localAc = null;
+  let localDest = null;
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (AC) {
-      try { state.mixAudioCtx?.close?.(); } catch {}
       localAc = new AC();
-      state.mixAudioCtx = localAc;
-      state.mixAudioDest = localAc.createMediaStreamDestination();
+      localDest = localAc.createMediaStreamDestination();
 
       if (wantMic && state.micDeviceStream) {
         const ats = state.micDeviceStream.getAudioTracks().filter(t => t.readyState === 'live');
         if (ats.length) {
           const ms = localAc.createMediaStreamSource(new MediaStream([ats[0]]));
-          ms.connect(state.mixAudioDest);
+          ms.connect(localDest);
         }
       }
 
@@ -1082,7 +1080,7 @@ async function rebuildAdminMix() {
         const ats = state.playlistStream.getAudioTracks().filter(t => t.readyState === 'live');
         if (ats.length) {
           const src = localAc.createMediaStreamSource(new MediaStream([ats[0]]));
-          src.connect(state.mixAudioDest);
+          src.connect(localDest);
         }
       }
 
@@ -1090,11 +1088,11 @@ async function rebuildAdminMix() {
         const ats = state.screenCaptureStream.getAudioTracks().filter(t => t.readyState === 'live');
         if (ats.length) {
           const src = localAc.createMediaStreamSource(new MediaStream([ats[0]]));
-          src.connect(state.mixAudioDest);
+          src.connect(localDest);
         }
       }
 
-      const at = state.mixAudioDest.stream.getAudioTracks()[0];
+      const at = localDest.stream.getAudioTracks()[0];
       if (at) out.addTrack(at);
     }
   } catch (e) { log('Audio mix gagal: ' + (e?.message || e)); }
@@ -1104,6 +1102,12 @@ async function rebuildAdminMix() {
     try { out.getAudioTracks().forEach(t => t.stop()); } catch {}
     return false;
   }
+
+  // Commit: swap old resources only when this build is current
+  stopAdminMixLoop();
+  try { state.mixAudioCtx?.close?.(); } catch {}
+  state.mixAudioCtx = localAc;
+  state.mixAudioDest = localDest;
 
   state.mixOutputStream = out;
   state.localStream = out;
@@ -1125,6 +1129,7 @@ async function rebuildAdminMix() {
     else setOverlay('Kamera Mati', 'Audio tetap aktif. Nyalakan kamera untuk menampilkan video.', true);
   }
   renderViewerPanel();
+  draw();
   await replaceLocalTracks(out);
   return true;
 }
