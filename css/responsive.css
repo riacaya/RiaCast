@@ -14,7 +14,7 @@
   .icon-btn { width: 34px; height: 34px; border-radius: 50%; }
   .stage-card { padding: 10px 0 4px; }
   .side-card { display: none; }
-  .side-card.mobile-open { display: flex; position: fixed; top: 57px; right: 0; bottom: 0; width: min(360px, 92vw); z-index: 80; background: var(--bg-1, #101218); padding: 12px; overflow: auto; border-left: 1px solid rgba(255,255,255,0.08); box-shadow: -8px 0 24px rgba(0,0,0,0.35); }
+  .side-card.mobile-open { display: flex; position: fixed; top: 57px; right: 0; bottom: 0; width: min(360px, 92vw); z-index: 80; background: var(--bg-1, #101218); padding: 0 0 12px 0; overflow: auto; border-left: 1px solid rgba(255,255,255,0.08); box-shadow: -8px 0 24px rgba(0,0,0,0.35); }
   .video-stage { aspect-ratio: 9 / 16; max-height: 72vh; }
   .local-pip { width: min(24%, 88px); right: 8px; top: 8px; aspect-ratio: 9 / 16; }
   .overlay:not(.drawer-right) { padding: 0; align-items: stretch; justify-items: stretch; }

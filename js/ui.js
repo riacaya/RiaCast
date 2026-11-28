@@ -507,6 +507,16 @@ function setSidebarPanel(name) {
   Object.entries(map).forEach(([key, id]) => {
     $(id)?.classList.toggle('active', key === target);
   });
+  const meta = {
+    viewers: { title: 'Penonton', icon: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Zm-4 6c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"/></svg>' },
+    device: { title: 'Studio Input', icon: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg>' },
+    playlist: { title: 'Playlist', icon: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h10v2H4v-2zm12 0 4 3-4 3v-6z"/></svg>' },
+  };
+  const m = meta[target] || meta.viewers;
+  const headIcon = $('sidebar-head-icon');
+  const headTitle = $('sidebar-head-title');
+  if (headIcon) headIcon.innerHTML = m.icon;
+  if (headTitle) headTitle.textContent = m.title;
   if (side && isMobile) side.classList.add('mobile-open');
   if (target === 'playlist') renderPlaylist();
   if (target === 'device' && typeof syncStudioUI === 'function') syncStudioUI();

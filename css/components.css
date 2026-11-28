@@ -1,5 +1,8 @@
 .side-section + .side-section { margin-top: 18px; padding-top: 18px; border-top: none; }
-.sidebar-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.sidebar-head { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 12px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.sidebar-head-icon { display: inline-grid; place-items: center; color: var(--accent); }
+.sidebar-head-title { margin: 0; font-size: 0.95rem; font-weight: 600; color: var(--text); }
+.sidebar-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 12px 0 0 12px; }
 .sidebar-panel.hidden { display: none; }
 .sidebar-panel-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 10px; }
 .viewer-list-section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -125,7 +128,7 @@
 .tab-pane[data-tab-pane="log"].active { display: flex; flex-direction: column; min-height: 300px; }
 .tab-pane[data-tab-pane="log"] .log-text { min-height: 300px; }
 .app-footer {
-  display: flex; justify-content: flex-start; align-items: center; gap: 10px; flex-wrap: wrap;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
   padding: 6px 0; margin-top: 0; color: var(--muted); font-size: 0.82rem; text-align: left;
 }
 .app-footer a { color: #dce3ec; text-decoration: none; }
