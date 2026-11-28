@@ -181,10 +181,15 @@ body.mode-admin .settings-shortcuts .admin-only { display: flex; }
 /* Playlist */
 .overlay-card-playlist { width: min(440px, 100%); }
 .playlist-body { display: flex; flex-direction: column; gap: 10px; max-height: min(72vh, 640px); }
-.playlist-actions { display: flex; gap: 8px; align-items: center; }
-.playlist-add-btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.playlist-controls { display: flex; gap: 8px; align-items: center; }
+.playlist-controls .icon-btn-small.active { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.playlist-progress-wrap { display: flex; flex-direction: column; gap: 4px; }
+.playlist-progress { width: 100%; accent-color: var(--accent); cursor: pointer; }
+.playlist-time { font-size: 0.75rem; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.playlist-actions { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+.playlist-actions-right { display: flex; gap: 8px; align-items: center; }
+.playlist-icon-btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
 .hidden-file-input { display: none; }
-.playlist-mini-btn { width: auto; padding: 10px 12px; }
 .playlist-list { flex: 1 1 auto; min-height: 120px; max-height: 320px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
 .playlist-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255,255,255,0.04); cursor: pointer; }
 .playlist-item.active { box-shadow: 0 0 0 1px rgba(255,106,61,0.35); background: color-mix(in srgb, var(--accent) 12%, rgba(255,255,255,0.04)); }
@@ -192,6 +197,4 @@ body.mode-admin .settings-shortcuts .admin-only { display: flex; }
 .playlist-item-meta { flex: 0 0 auto; font-size: 0.72rem; color: var(--muted); }
 .playlist-item-remove { width: 28px; height: 28px; flex: 0 0 28px; border: none; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; }
 .playlist-item-remove:hover { background: rgba(255,255,255,0.08); color: var(--text); }
-.playlist-now { font-size: 0.78rem; color: var(--muted); min-height: 1.2em; }
-.playlist-controls { display: flex; gap: 8px; align-items: center; }
-.playlist-controls .icon-btn-small.active { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.playlist-now { font-size: 0.78rem; color: var(--muted); min-height: 1.2em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

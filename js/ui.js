@@ -462,4 +462,30 @@ function renderPlaylist() {
   if (playBtn) { playBtn.setAttribute('aria-label', state.playlistPlaying ? 'Jeda' : 'Putar'); playBtn.setAttribute('title', state.playlistPlaying ? 'Jeda' : 'Putar'); }
   const loopBtn = $('playlist-loop');
   if (loopBtn) loopBtn.classList.toggle('active', !!state.playlistLoop);
+  syncPlaylistProgress();
+}
+
+function formatMediaTime(sec) {
+  if (!Number.isFinite(sec) || sec < 0) return '00:00';
+  const total = Math.floor(sec);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (h > 0) return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function syncPlaylistProgress() {
+  const el = state.playlistEl;
+  const cur = $('playlist-current');
+  const dur = $('playlist-duration');
+  const prog = $('playlist-progress');
+  const current = el && Number.isFinite(el.currentTime) ? el.currentTime : 0;
+  const duration = el && Number.isFinite(el.duration) && el.duration > 0 ? el.duration : 0;
+  if (cur) cur.textContent = formatMediaTime(current);
+  if (dur) dur.textContent = formatMediaTime(duration);
+  if (prog) {
+    const val = duration > 0 ? Math.round((current / duration) * 1000) : 0;
+    if (Number(prog.value) !== val) prog.value = String(val);
+  }
 }

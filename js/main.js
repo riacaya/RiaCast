@@ -155,6 +155,14 @@ function bindUI() {
   $('playlist-play')?.addEventListener('click', togglePlaylistPlayback);
   $('playlist-next')?.addEventListener('click', playNextPlaylist);
   $('playlist-loop')?.addEventListener('click', togglePlaylistLoop);
+  $('playlist-save')?.addEventListener('click', savePlaylist);
+  $('playlist-progress')?.addEventListener('input', (e) => {
+    const el = state.playlistEl;
+    if (!el || !Number.isFinite(el.duration) || el.duration <= 0) return;
+    const ratio = Math.max(0, Math.min(1000, Number(e.target.value || 0))) / 1000;
+    el.currentTime = ratio * el.duration;
+    syncPlaylistProgress();
+  });
   $('btn-copy-log')?.addEventListener('click', async () => {
     const text = els.logList?.value || '';
     try {
@@ -285,6 +293,7 @@ async function boot() {
   state.intervals.push(setInterval(refreshViewerConnTypes, 5000));
   state.intervals.push(setInterval(updateOnlineTime, 1000));
   state.intervals.push(setInterval(cleanupStaleViewers, 10000));
+  state.intervals.push(setInterval(syncPlaylistProgress, 1000));
   updateOnlineTime();
   syncPlayUI();
   syncVolumeUI();

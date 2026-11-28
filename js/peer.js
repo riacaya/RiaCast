@@ -1266,6 +1266,25 @@ function clearPlaylist() {
   log('Playlist dibersihkan.');
 }
 
+function savePlaylist() {
+  if (!state.playlist.length) { log('Playlist kosong, tidak ada yang disimpan.'); return; }
+  const data = {
+    name: 'RiaCast Playlist',
+    createdAt: new Date().toISOString(),
+    items: state.playlist.map((it) => ({ name: it.name || '', type: it.type || '' })),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  a.href = url;
+  a.download = 'riacast-playlist.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  log('Playlist disimpan (' + state.playlist.length + ' item).');
+}
+
 function togglePlaylistLoop() {
   state.playlistLoop = !state.playlistLoop;
   if (state.playlistEl) state.playlistEl.loop = !!state.playlistLoop && state.playlist.length === 1;
@@ -1286,6 +1305,10 @@ async function playPlaylistIndex(idx) {
   el.crossOrigin = 'anonymous';
   el.controls = false;
   state.playlistEl = el;
+  const syncPl = () => { if (typeof syncPlaylistProgress === 'function') syncPlaylistProgress(); };
+  el.ontimeupdate = syncPl;
+  el.onloadedmetadata = syncPl;
+  el.ondurationchange = syncPl;
   el.onended = () => {
     if (state.playlistLoop) { playPlaylistIndex((idx + 1) % state.playlist.length); return; }
     if (idx + 1 < state.playlist.length) playPlaylistIndex(idx + 1);
