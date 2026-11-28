@@ -133,12 +133,6 @@
         <div id="sidebar-panel-playlist" class="sidebar-panel hidden" data-sidebar-panel="playlist">
           <div class="side-section">
             <div class="sidebar-panel-body playlist-body">
-              <div class="playlist-controls">
-                <button id="playlist-prev" type="button" class="icon-btn-small" aria-label="Sebelumnya" title="Sebelumnya"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
-                <button id="playlist-play" type="button" class="icon-btn-small" aria-label="Putar" title="Putar"><svg id="playlist-play-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg><svg id="playlist-pause-icon" class="hidden" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
-                <button id="playlist-next" type="button" class="icon-btn-small" aria-label="Berikutnya" title="Berikutnya"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
-                <button id="playlist-loop" type="button" class="icon-btn-small" aria-label="Loop" title="Loop"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
-              </div>
               <div class="playlist-progress-wrap">
                 <input id="playlist-progress" class="playlist-progress" type="range" min="0" max="1000" value="0" aria-label="Progres playlist">
                 <div class="playlist-time"><span id="playlist-current">00:00</span> / <span id="playlist-duration">00:00</span></div>
@@ -150,6 +144,12 @@
                   <button id="playlist-save" type="button" class="icon-btn-small playlist-icon-btn" aria-label="Simpan playlist" title="Simpan playlist"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm3-10H5V5h10v4z"/></svg></button>
                   <button id="playlist-clear" type="button" class="icon-btn-small playlist-icon-btn" aria-label="Bersihkan daftar" title="Bersihkan daftar"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
                 </div>
+              </div>
+              <div class="playlist-controls">
+                <button id="playlist-prev" type="button" class="icon-btn-small" aria-label="Sebelumnya" title="Sebelumnya"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+                <button id="playlist-play" type="button" class="icon-btn-small" aria-label="Putar" title="Putar"><svg id="playlist-play-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg><svg id="playlist-pause-icon" class="hidden" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg></button>
+                <button id="playlist-next" type="button" class="icon-btn-small" aria-label="Berikutnya" title="Berikutnya"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+                <button id="playlist-loop" type="button" class="icon-btn-small" aria-label="Loop" title="Loop"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
               </div>
               <div class="playlist-now" id="playlist-now">Belum ada media diputar.</div>
               <div id="playlist-list" class="playlist-list" aria-live="polite"></div>
