@@ -215,19 +215,6 @@ function bindUI() {
 
   els.studioOpenPlaylist?.addEventListener('click', () => { if (isAdmin()) openOverlay('playlist-overlay'); });
 
-  els.studioCamToggle?.addEventListener('click', async () => {
-    state.camEnabled = !state.camEnabled;
-    await ensureLocalStream().catch(() => {});
-    syncCamUI();
-    log(state.camEnabled ? 'Kamera aktif.' : 'Kamera nonaktif.');
-  });
-
-  els.studioMicToggle?.addEventListener('click', async () => {
-    state.micEnabled = !state.micEnabled;
-    await ensureLocalStream().catch(() => {});
-    syncMicUI();
-    log(state.micEnabled ? 'Mic aktif.' : 'Mic nonaktif.');
-  });
   $('save-name')?.addEventListener('click', () => {
     if (!els.displayName) return;
     state.settings.displayName = els.displayName.value.trim().slice(0, 32);

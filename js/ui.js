@@ -413,18 +413,6 @@ function syncMicUI() {
 
 function syncStudioUI() {
   if (els.studioSource) els.studioSource.value = state.mainSource || 'camera';
-  if (els.studioCamToggle) {
-    const on = !!state.camEnabled;
-    els.studioCamToggle.textContent = on ? 'On' : 'Off';
-    els.studioCamToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
-    els.studioCamToggle.classList.toggle('active', on);
-  }
-  if (els.studioMicToggle) {
-    const on = !!state.micEnabled;
-    els.studioMicToggle.textContent = on ? 'On' : 'Off';
-    els.studioMicToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
-    els.studioMicToggle.classList.toggle('active', on);
-  }
   if (els.btnScreenShare) {
     els.btnScreenShare.textContent = state.screenCaptureStream ? 'Hentikan Rekam Layar' : 'Mulai Rekam Layar';
   }

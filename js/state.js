@@ -66,8 +66,6 @@ var els = {
   displayName: $('display-name'),
   btnScreenShare: $('btn-screen-share'),
   studioSource: $('studio-source'),
-  studioCamToggle: $('studio-cam-toggle'),
-  studioMicToggle: $('studio-mic-toggle'),
   studioOpenPlaylist: $('studio-open-playlist'),
   adminPassword: $('admin-password'),
   adminLogin: $('admin-login'),

@@ -40,10 +40,10 @@ function createFallbackStream() {
 }
 
 async function ensureLocalStream() {
-  if (state.localStreamPromise) {
+  // Tunggu run yang sedang berjalan, lalu selalu jalankan ulang agar state terbaru (mainSource/cam/mic/playlist) terpakai.
+  while (state.localStreamPromise) {
     try { await state.localStreamPromise; } catch {}
   }
-  if (state.localStreamPromise) return state.localStreamPromise;
   const p = _ensureLocalStreamImpl();
   state.localStreamPromise = p;
   try { return await p; }
@@ -910,6 +910,7 @@ function syncFullscreenUI() {
 }
 
 // ---------------- ADMIN MIX ----------------
+var _mixBuildSeq = 0;
 function ensureMixCanvas() {
   if (state.mixCanvas) return state.mixCanvas;
   const c = document.createElement('canvas');
@@ -981,14 +982,17 @@ function shouldUseComposedStream() {
 
 async function rebuildAdminMix() {
   if (!isAdmin()) return false;
+  const buildId = ++_mixBuildSeq;
 
   const wantMic = !!state.micEnabled;
   const wantCam = !!state.camEnabled;
   try { if (wantCam) await ensureCamDeviceStream(); } catch (e) { log('Kamera gagal: ' + (e?.message || e)); }
   try { if (wantMic) await ensureMicDeviceStream(); } catch (e) { log('Mic gagal: ' + (e?.message || e)); }
+  if (buildId !== _mixBuildSeq) return false;
 
   const canvas = ensureMixCanvas();
   const ctx = canvas.getContext('2d');
+  if (buildId !== _mixBuildSeq) return false;
   stopAdminMixLoop();
   const mixLogo = new Image();
   mixLogo.src = 'assets/logo.svg';
@@ -1049,22 +1053,27 @@ async function rebuildAdminMix() {
   };
   draw();
 
-  if (!state.mixVideoTrack) state.mixVideoTrack = canvas.captureStream(30).getVideoTracks()[0];
+  if (!state.mixVideoTrack || state.mixVideoTrack.readyState === 'ended') {
+    try { state.mixVideoTrack?.stop?.(); } catch {}
+    state.mixVideoTrack = canvas.captureStream(30).getVideoTracks()[0] || null;
+  }
   const out = new MediaStream();
   if (state.mixVideoTrack) out.addTrack(state.mixVideoTrack);
 
   // Audio mix: mic + playlist audio (if playing) + screen audio (if screen is main source)
+  let localAc = null;
   try {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (AC) {
       try { state.mixAudioCtx?.close?.(); } catch {}
-      state.mixAudioCtx = new AC();
-      state.mixAudioDest = state.mixAudioCtx.createMediaStreamDestination();
+      localAc = new AC();
+      state.mixAudioCtx = localAc;
+      state.mixAudioDest = localAc.createMediaStreamDestination();
 
       if (wantMic && state.micDeviceStream) {
         const ats = state.micDeviceStream.getAudioTracks().filter(t => t.readyState === 'live');
         if (ats.length) {
-          const ms = state.mixAudioCtx.createMediaStreamSource(new MediaStream([ats[0]]));
+          const ms = localAc.createMediaStreamSource(new MediaStream([ats[0]]));
           ms.connect(state.mixAudioDest);
         }
       }
@@ -1072,7 +1081,7 @@ async function rebuildAdminMix() {
       if (state.playlistPlaying && state.playlistStream) {
         const ats = state.playlistStream.getAudioTracks().filter(t => t.readyState === 'live');
         if (ats.length) {
-          const src = state.mixAudioCtx.createMediaStreamSource(new MediaStream([ats[0]]));
+          const src = localAc.createMediaStreamSource(new MediaStream([ats[0]]));
           src.connect(state.mixAudioDest);
         }
       }
@@ -1080,7 +1089,7 @@ async function rebuildAdminMix() {
       if (state.mainSource === 'screen' && state.screenCaptureStream) {
         const ats = state.screenCaptureStream.getAudioTracks().filter(t => t.readyState === 'live');
         if (ats.length) {
-          const src = state.mixAudioCtx.createMediaStreamSource(new MediaStream([ats[0]]));
+          const src = localAc.createMediaStreamSource(new MediaStream([ats[0]]));
           src.connect(state.mixAudioDest);
         }
       }
@@ -1089,6 +1098,12 @@ async function rebuildAdminMix() {
       if (at) out.addTrack(at);
     }
   } catch (e) { log('Audio mix gagal: ' + (e?.message || e)); }
+
+  if (buildId !== _mixBuildSeq) {
+    try { localAc?.close?.(); } catch {}
+    try { out.getAudioTracks().forEach(t => t.stop()); } catch {}
+    return false;
+  }
 
   state.mixOutputStream = out;
   state.localStream = out;
