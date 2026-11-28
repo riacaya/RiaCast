@@ -188,7 +188,7 @@ body.mode-admin .settings-shortcuts .admin-only { display: flex; }
 .overlay-card-playlist { width: min(440px, 100%); }
 .playlist-body { display: flex; flex-direction: column; gap: 10px; max-height: min(72vh, 640px); }
 .playlist-player { display: flex; flex-direction: column; gap: 8px; padding: 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); }
-.playlist-controls { display: flex; gap: 8px; align-items: center; justify-content: center; }
+.playlist-controls { display: flex; gap: 8px; align-items: center; }
 .playlist-controls .icon-btn-small.active { background: color-mix(in srgb, var(--accent) 30%, transparent); }
 .playlist-progress-wrap { display: flex; flex-direction: row; align-items: center; gap: 10px; }
 .playlist-progress { flex: 1 1 auto; width: auto; height: 2px; accent-color: var(--accent); cursor: pointer; background: rgba(255,255,255,0.15); border-radius: 2px; -webkit-appearance: none; appearance: none; }
@@ -196,7 +196,7 @@ body.mode-admin .settings-shortcuts .admin-only { display: flex; }
 .playlist-progress::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-top: -4px; border: none; }
 .playlist-progress::-moz-range-track { height: 2px; background: rgba(255,255,255,0.15); border-radius: 2px; border: none; }
 .playlist-progress::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: none; }
-.playlist-time { flex: 0 0 auto; font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.playlist-time { margin-left: auto; font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .playlist-actions { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
 .playlist-actions-right { display: flex; gap: 8px; align-items: center; }
 .playlist-icon-btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: color-mix(in srgb, var(--accent) 14%, rgba(255,255,255,0.04)); border: 1px solid color-mix(in srgb, var(--accent) 30%, rgba(255,255,255,0.08)); color: var(--text); }
