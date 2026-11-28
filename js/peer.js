@@ -1041,7 +1041,7 @@ async function rebuildAdminMix() {
       try { state.mixAudioCtx?.close?.(); } catch {}
       state.mixAudioCtx = new AC();
       state.mixAudioDest = state.mixAudioCtx.createMediaStreamDestination();
-      if (state.camEnabled && wantMic && state.micDeviceStream) {
+      if (wantMic && state.micDeviceStream) {
         const ms = state.mixAudioCtx.createMediaStreamSource(state.micDeviceStream);
         ms.connect(state.mixAudioDest);
       }
