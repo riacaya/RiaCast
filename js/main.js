@@ -299,7 +299,7 @@ async function boot() {
   syncShareUI();
   syncCamUI();
   syncMicUI();
-  if (typeof setSidebarPanel === 'function') setSidebarPanel(state.sidebarPanel || 'viewers');
+  if (typeof setSidebarPanel === 'function') setSidebarPanel(state.sidebarPanel || 'viewers', { openDrawer: false });
   els.displayName.value = state.settings.displayName || '';
 
   if (!window.Peer) {

@@ -490,14 +490,13 @@ function syncPlaylistProgress() {
   }
 }
 
-function setSidebarPanel(name) {
+function setSidebarPanel(name, { openDrawer = true } = {}) {
   const valid = ['viewers', 'device', 'playlist'];
   const target = valid.includes(name) ? name : 'viewers';
   const side = $('side-card');
   const isMobile = window.innerWidth <= 1024;
   if (isMobile && side && side.classList.contains('mobile-open') && state.sidebarPanel === target) {
-    side.classList.remove('mobile-open');
-    return;
+    if (openDrawer) { side.classList.remove('mobile-open'); return; }
   }
   state.sidebarPanel = target;
   qsa('[data-sidebar-panel]').forEach((el) => {
@@ -517,7 +516,7 @@ function setSidebarPanel(name) {
   const headTitle = $('sidebar-head-title');
   if (headIcon) headIcon.innerHTML = m.icon;
   if (headTitle) headTitle.textContent = m.title;
-  if (side && isMobile) side.classList.add('mobile-open');
+  if (side && isMobile && openDrawer) side.classList.add('mobile-open');
   if (target === 'playlist') renderPlaylist();
   if (target === 'device' && typeof syncStudioUI === 'function') syncStudioUI();
 }
