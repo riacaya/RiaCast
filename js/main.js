@@ -89,22 +89,14 @@ function bindUI() {
 
   els.btnCamToggle?.addEventListener('click', async () => {
     state.camEnabled = !state.camEnabled;
-    if (isAdmin() && (state.mainSource === 'playlist' || state.mainSource === 'screen')) {
-      await rebuildAdminMix().catch(() => {});
-    } else {
-      try { await ensureLocalStream(); } catch {}
-    }
+    await ensureLocalStream().catch(() => {});
     syncCamUI();
     log(state.camEnabled ? 'Kamera aktif.' : 'Kamera nonaktif.');
   });
 
   els.btnMicToggle?.addEventListener('click', async () => {
     state.micEnabled = !state.micEnabled;
-    if (isAdmin() && (state.mainSource === 'playlist' || state.mainSource === 'screen')) {
-      await rebuildAdminMix().catch(() => {});
-    } else {
-      try { await ensureLocalStream(); } catch {}
-    }
+    await ensureLocalStream().catch(() => {});
     syncMicUI();
     log(state.micEnabled ? 'Mic aktif.' : 'Mic nonaktif.');
   });
@@ -201,21 +193,21 @@ function bindUI() {
     const val = els.studioSource.value;
     if (val === 'camera') {
       state.mainSource = 'camera';
-      try { await ensureLocalStream(); } catch {}
+      await ensureLocalStream().catch(() => {});
     } else if (val === 'screen') {
       if (state.screenCaptureStream) {
         state.mainSource = 'screen';
-        try { await ensureLocalStream(); } catch {}
+        await ensureLocalStream().catch(() => {});
       } else if (typeof toggleScreenCapture === 'function') {
         await toggleScreenCapture();
       }
     } else if (val === 'playlist') {
+      state.mainSource = 'playlist';
       if (state.playlistStream && state.playlistEl) {
-        state.mainSource = 'playlist';
-        if (state.camEnabled || state.micEnabled) await rebuildAdminMix().catch(() => {});
-        else await activatePlaylistStream(state.playlistStream, 'Playlist').catch(() => {});
+        await ensureLocalStream().catch(() => {});
       } else {
         openOverlay('playlist-overlay');
+        await ensureLocalStream().catch(() => {});
       }
     }
     if (typeof syncStudioUI === 'function') syncStudioUI();
@@ -225,16 +217,14 @@ function bindUI() {
 
   els.studioCamToggle?.addEventListener('click', async () => {
     state.camEnabled = !state.camEnabled;
-    if (isAdmin() && (state.mainSource === 'playlist' || state.mainSource === 'screen')) await rebuildAdminMix().catch(() => {});
-    else try { await ensureLocalStream(); } catch {}
+    await ensureLocalStream().catch(() => {});
     syncCamUI();
     log(state.camEnabled ? 'Kamera aktif.' : 'Kamera nonaktif.');
   });
 
   els.studioMicToggle?.addEventListener('click', async () => {
     state.micEnabled = !state.micEnabled;
-    if (isAdmin() && (state.mainSource === 'playlist' || state.mainSource === 'screen')) await rebuildAdminMix().catch(() => {});
-    else try { await ensureLocalStream(); } catch {}
+    await ensureLocalStream().catch(() => {});
     syncMicUI();
     log(state.micEnabled ? 'Mic aktif.' : 'Mic nonaktif.');
   });

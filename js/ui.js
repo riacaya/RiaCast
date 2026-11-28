@@ -54,7 +54,7 @@ function setModeUI() {
   if (admin) {
     state.spotlightId = null;
     if (els.mainVideo) { els.mainVideo.srcObject = null; els.mainVideo.muted = true; }
-    setOverlay('RiaCast', 'Pilih penonton atau mulai rekam layar untuk menampilkan di panggung.', true);
+    setOverlay('RiaCast', 'Pilih sumber untuk menampilkan di panggung.', true);
     renderViewerPanel();
   } else {
     state.spotlightId = null;
@@ -80,20 +80,20 @@ function setMainToStream(stream, muted = false) {
 }
 
 function setMainToAdminDefault() {
-  if (!els.mainVideo) { setOverlay('RiaCast', 'Pilih penonton atau mulai rekam layar untuk menampilkan di panggung.', true); return; }
+  if (!els.mainVideo) { setOverlay('RiaCast', 'Pilih sumber untuk menampilkan di panggung.', true); return; }
   const out = state.localStream;
   if (out && (out.getVideoTracks().length > 0 || out.getAudioTracks().length > 0)) {
     els.mainVideo.muted = true;
     if (els.mainVideo.srcObject !== out) els.mainVideo.srcObject = out;
     els.mainVideo.play().catch(() => {});
-    const hasVideo = out.getVideoTracks().some(t => t.enabled);
-    if (hasVideo) setOverlay('', '', false);
-    else setOverlay('Kamera Mati', 'Audio tetap aktif. Nyalakan kamera untuk menampilkan video.', true);
+    const camOffMain = isAdmin() && state.mainSource === 'camera' && !state.camEnabled;
+    if (camOffMain) setOverlay('Kamera Mati', 'Audio tetap aktif. Nyalakan kamera untuk menampilkan video.', true);
+    else setOverlay('', '', false);
     return;
   }
   els.mainVideo.muted = true;
   els.mainVideo.srcObject = null;
-  setOverlay('RiaCast', 'Pilih penonton atau mulai rekam layar untuk menampilkan di panggung.', true);
+  setOverlay('RiaCast', 'Pilih sumber untuk menampilkan di panggung.', true);
 }
 
 function setSpotlight(peerId) {
