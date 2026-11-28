@@ -87,4 +87,4 @@ body.mode-admin .local-pip { display: none; }
 }
 .video-stage:fullscreen .main-video, .video-stage:-webkit-full-screen .main-video { object-fit: contain; }
 
-.side-card { padding: 0 0 4px 0; display: flex; flex-direction: column; min-width: 0; overflow: hidden; border-left: none; }
+.side-card { padding: 0; display: flex; flex-direction: column; min-width: 0; overflow: hidden; border-left: none; }
