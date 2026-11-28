@@ -189,12 +189,16 @@ body.mode-admin .settings-shortcuts .admin-only { display: flex; }
 .playlist-body { display: flex; flex-direction: column; gap: 10px; max-height: min(72vh, 640px); }
 .playlist-controls { display: flex; gap: 8px; align-items: center; }
 .playlist-controls .icon-btn-small.active { background: color-mix(in srgb, var(--accent) 30%, transparent); }
-.playlist-progress-wrap { display: flex; flex-direction: column; gap: 4px; }
-.playlist-progress { width: 100%; accent-color: var(--accent); cursor: pointer; }
-.playlist-time { font-size: 0.75rem; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.playlist-progress-wrap { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+.playlist-progress { flex: 1 1 auto; width: auto; height: 2px; accent-color: var(--accent); cursor: pointer; background: rgba(255,255,255,0.15); border-radius: 2px; -webkit-appearance: none; appearance: none; }
+.playlist-progress::-webkit-slider-runnable-track { height: 2px; background: rgba(255,255,255,0.15); border-radius: 2px; }
+.playlist-progress::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-top: -4px; border: none; }
+.playlist-progress::-moz-range-track { height: 2px; background: rgba(255,255,255,0.15); border-radius: 2px; border: none; }
+.playlist-progress::-moz-range-thumb { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: none; }
+.playlist-time { flex: 0 0 auto; font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .playlist-actions { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
 .playlist-actions-right { display: flex; gap: 8px; align-items: center; }
-.playlist-icon-btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.playlist-icon-btn { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; background: color-mix(in srgb, var(--accent) 14%, rgba(255,255,255,0.04)); border: 1px solid color-mix(in srgb, var(--accent) 30%, rgba(255,255,255,0.08)); color: var(--text); }
 .hidden-file-input { display: none; }
 .playlist-list { flex: 1 1 auto; min-height: 120px; max-height: 320px; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
 .playlist-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255,255,255,0.04); cursor: pointer; }
